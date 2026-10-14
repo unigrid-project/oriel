@@ -1,0 +1,189 @@
+name: Oriel release
+
+# Started by pushing a tag such as v0.1.0, or by hand with a version. It builds and tests that commit and
+# leaves a draft release with the jars, which nobody sees until it is published from the Releases page.
+# Publishing the draft is what puts the version into GitHub Packages, where Janus fetches it from.
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "The version to release, such as 0.1.0, without a leading v"
+        type: string
+        required: true
+      prerelease:
+        description: "Mark the release as a pre-release"
+        type: boolean
+        default: false
+
+  release:
+    types: [ published ]
+
+jobs:
+  check:
+
+    if: github.event_name != 'release'
+
+    runs-on: ubuntu-22.04
+
+    permissions:
+      actions: read
+      contents: read
+
+    outputs:
+      version: ${{ steps.what.outputs.version }}
+
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+
+    - name: Set up JDK 25
+      uses: actions/setup-java@v6
+      with:
+        java-version: '25'
+        distribution: 'temurin'
+        cache: maven
+
+    - name: Check what is about to be released
+      id: what
+      env:
+        GH_TOKEN: ${{ github.token }}
+        EVENT: ${{ github.event_name }}
+        INPUT_VERSION: ${{ inputs.version }}
+        REPOSITORY: ${{ github.repository }}
+      run: |
+        if [ "$EVENT" = "push" ]; then
+          version="${GITHUB_REF_NAME#v}"
+
+          # A tag can be pushed from any branch; only what master holds is ever released.
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/master; then
+            echo "$GITHUB_REF_NAME is not on master" >&2
+            exit 1
+          fi
+        else
+          version="$INPUT_VERSION"
+
+          if [ "$GITHUB_REF" != "refs/heads/master" ]; then
+            echo "Releases are made from master, not from $GITHUB_REF" >&2
+            exit 1
+          fi
+
+          if ! echo "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "The version must look like 0.1.0, not '$version'" >&2
+            exit 1
+          fi
+
+          if git ls-remote --exit-code --tags origin "refs/tags/v$version" > /dev/null; then
+            echo "v$version is already tagged" >&2
+            exit 1
+          fi
+        fi
+
+        # The jars carry the version of the pom, so the tag has to name the same one.
+        built=$(./mvnw -B -q -DforceStdout help:evaluate -Dexpression=project.version)
+
+        if [ "$built" != "$version" ]; then
+          echo "The pom is at $built, not at $version" >&2
+          exit 1
+        fi
+
+        # The release commit only sets the version, so the checks that passed on the commit before it count.
+        passed=0
+
+        for commit in "$GITHUB_SHA" "$(git rev-parse "$GITHUB_SHA^")"; do
+          passed=$((passed + $(gh run list --repo "$REPOSITORY" --workflow maven.yml --commit "$commit" \
+            --status success --json databaseId --jq length)))
+        done
+
+        if [ "$passed" -eq 0 ]; then
+          echo "The build checks have passed neither for $GITHUB_SHA nor for the commit before it" >&2
+          exit 1
+        fi
+
+        echo "version=$version" >> "$GITHUB_OUTPUT"
+
+  draft:
+
+    needs: check
+
+    runs-on: ubuntu-22.04
+
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Set up JDK 25
+      uses: actions/setup-java@v6
+      with:
+        java-version: '25'
+        distribution: 'temurin'
+        cache: maven
+
+    - name: Build and test
+      run: ./mvnw -B install
+
+    - name: Collect the jars
+      env:
+        VERSION: ${{ needs.check.outputs.version }}
+      run: |
+        mkdir dist
+        cp oriel-server/target/oriel-server-$VERSION.jar oriel-server/target/oriel-server-$VERSION-tests.jar \
+          oriel-window/target/oriel-window-$VERSION.jar dist/
+        (cd dist && sha256sum *.jar > SHA256SUMS)
+
+    - name: Leave a draft release
+      env:
+        GH_TOKEN: ${{ github.token }}
+        VERSION: ${{ needs.check.outputs.version }}
+        PRERELEASE: ${{ inputs.prerelease }}
+      run: |
+        flags=""
+
+        if [ "$PRERELEASE" = "true" ]; then
+          flags="--prerelease"
+        fi
+
+        gh release create "v$VERSION" dist/* --draft $flags --target "$GITHUB_SHA" \
+          --title "Oriel $VERSION" --generate-notes
+
+  publish:
+
+    if: github.event_name == 'release'
+
+    runs-on: ubuntu-22.04
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - uses: actions/checkout@v7
+
+    # The server it writes into the Maven settings is named github and signs in with GITHUB_TOKEN.
+    - name: Set up JDK 25
+      uses: actions/setup-java@v6
+      with:
+        java-version: '25'
+        distribution: 'temurin'
+        cache: maven
+
+    - name: Publish to GitHub Packages
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        TAG: ${{ github.event.release.tag_name }}
+      run: |
+        built=$(./mvnw -B -q -DforceStdout help:evaluate -Dexpression=project.version)
+
+        if [ "v$built" != "$TAG" ]; then
+          echo "The pom is at $built, which $TAG does not name" >&2
+          exit 1
+        fi
+
+        ./mvnw -B deploy -DskipTests \
+          -DaltDeploymentRepository=github::https://maven.pkg.github.com/$GITHUB_REPOSITORY
