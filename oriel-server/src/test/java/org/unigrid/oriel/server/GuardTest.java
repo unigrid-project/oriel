@@ -88,8 +88,8 @@ public class GuardTest extends ServedTest {
 
 	@Example
 	public void shouldGuardTheAssetsToo() throws Exception {
-		assertEquals(403, anonymous().get("/static/css/testing.css").statusCode());
-		assertEquals(200, admitted().get("/static/css/testing.css").statusCode());
+		assertEquals(403, anonymous().get("/static/oriel-test/testing.css").statusCode());
+		assertEquals(200, admitted().get("/static/oriel-test/testing.css").statusCode());
 	}
 
 	@Example

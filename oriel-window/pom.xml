@@ -9,7 +9,7 @@
 	<artifactId>oriel-window</artifactId>
 	<packaging>jar</packaging>
 	<name>Oriel Window</name>
-	<description>Desktop window hosting the embedded browser, the system tray and the application lifecycle.</description>
+	<description>Desktop window hosting the embedded browser, with its window controls, file dialogs and lifecycle.</description>
 	<dependencies>
 		<dependency>
 			<groupId>org.unigrid.oriel</groupId>

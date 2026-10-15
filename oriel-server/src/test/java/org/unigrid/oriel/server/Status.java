@@ -22,6 +22,6 @@ import org.unigrid.oriel.server.action.View;
 public record Status(String holder) implements View {
 	@Override
 	public String template() {
-		return "testing :: status";
+		return "oriel-test/testing :: status";
 	}
 }

@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class RoutesTest extends ServedTest {
 	@Example
 	public void shouldServeTheStylesheetAsCss() throws Exception {
-		final HttpResponse<String> response = admitted().get("/static/css/testing.css");
+		final HttpResponse<String> response = admitted().get("/static/oriel-test/testing.css");
 
 		assertEquals(200, response.statusCode());
 		assertTrue(response.headers().firstValue("content-type").orElse("").startsWith("text/css"),
@@ -44,7 +44,7 @@ public class RoutesTest extends ServedTest {
 		);
 		assertTrue(script.body().contains("/window/"), script.body());
 		assertEquals(200, client.get("/oriel/htmx.min.js").statusCode());
-		assertEquals(200, client.get("/static/css/testing.css").statusCode());
+		assertEquals(200, client.get("/static/oriel-test/testing.css").statusCode());
 	}
 
 	@Example

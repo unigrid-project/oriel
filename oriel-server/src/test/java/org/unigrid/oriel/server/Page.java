@@ -22,6 +22,6 @@ import org.unigrid.oriel.server.action.View;
 public record Page(String title) implements View {
 	@Override
 	public String template() {
-		return "page";
+		return "oriel-test/page";
 	}
 }
