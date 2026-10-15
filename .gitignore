@@ -1,0 +1,11 @@
+**/socomo.html
+**/nb-configuration.xml
+
+.vscode/
+**/.DS_Store
+
+target/
+
+.jqwik-database
+.idea/
+.flattened-pom.xml
