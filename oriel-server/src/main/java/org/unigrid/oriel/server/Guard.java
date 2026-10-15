@@ -16,8 +16,7 @@
 
 package org.unigrid.oriel.server;
 
-import java.net.HttpCookie;
-import java.util.List;
+import org.eclipse.jetty.http.HttpCookie;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Handler;
@@ -45,7 +44,7 @@ public class Guard extends Handler.Wrapper {
 			return refuse(response, callback);
 		}
 
-		if (token.matches(cookie(request))) {
+		if (holdsTheToken(request)) {
 			return super.handle(request, response, callback);
 		}
 
@@ -74,24 +73,19 @@ public class Guard extends Handler.Wrapper {
 		return true;
 	}
 
-	private String cookie(final Request request) {
-		for (final String header : request.getHeaders().getValuesList(HttpHeader.COOKIE)) {
-			for (final HttpCookie cookie : parse(header)) {
-				if (SessionToken.COOKIE.equals(cookie.getName())) {
-					return cookie.getValue();
-				}
+	/*
+	 * Every cookie is looked at, not only the first: the page may set cookies of its own, and cookies do not keep
+	 * to a port, so any other page on this address can add one, even one named like the session cookie. A cookie
+	 * that is not the token neither admits nor refuses; only the token admits.
+	 */
+	private boolean holdsTheToken(final Request request) {
+		for (final HttpCookie cookie : Request.getCookies(request)) {
+			if (SessionToken.COOKIE.equals(cookie.getName()) && token.matches(cookie.getValue())) {
+				return true;
 			}
 		}
 
-		return null;
-	}
-
-	private List<HttpCookie> parse(final String header) {
-		try {
-			return HttpCookie.parse(header);
-		} catch (IllegalArgumentException _) {
-			return List.of();
-		}
+		return false;
 	}
 
 	/* A page in the user's own browser can reach this port. It cannot read the responses, but
