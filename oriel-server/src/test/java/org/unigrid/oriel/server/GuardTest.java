@@ -92,6 +92,39 @@ public class GuardTest extends ServedTest {
 		assertEquals(200, admitted().get("/static/oriel-test/testing.css").statusCode());
 	}
 
+	/* The browser sends every cookie it holds for the address in one header, in an order of its own. */
+
+	@Example
+	public void shouldFindTheSessionCookieWhereverItIsAmongOthers() throws Exception {
+		final String session = SessionToken.COOKIE + "=" + token().value();
+
+		assertEquals(200, sending(session + "; theme=dark").statusCode());
+		assertEquals(200, sending("theme=dark; " + session).statusCode());
+		assertEquals(200, sending("theme=dark; " + session + "; lang=en").statusCode());
+	}
+
+	@Example
+	public void shouldRefuseOtherCookiesWithoutTheSessionCookie() throws Exception {
+		assertEquals(403, sending("theme=dark; lang=en").statusCode());
+	}
+
+	/* Another page on this address can set a session cookie of its own, which must not lock the real one out. */
+	@Example
+	public void shouldAdmitTheTokenBesideAnotherSessionCookie() throws Exception {
+		final String session = SessionToken.COOKIE + "=" + token().value();
+		final String stranger = SessionToken.COOKIE + "=not-the-token";
+
+		assertEquals(200, sending(stranger + "; " + session).statusCode());
+		assertEquals(200, sending(session + "; " + stranger).statusCode());
+	}
+
+	@Example
+	public void shouldRefuseSessionCookiesThatAllHoldTheWrongToken() throws Exception {
+		final String stranger = SessionToken.COOKIE + "=not-the-token";
+
+		assertEquals(403, sending(stranger + "; " + SessionToken.COOKIE + "=nor-this; theme=dark").statusCode());
+	}
+
 	@Example
 	public void shouldIssueADifferentTokenEachTime() {
 		assertTrue(!SessionToken.random().value().equals(SessionToken.random().value()));
@@ -100,5 +133,9 @@ public class GuardTest extends ServedTest {
 	@Example
 	public void shouldRejectAnAbsentCandidate() {
 		assertTrue(!token().matches(null));
+	}
+
+	private HttpResponse<String> sending(final String cookies) throws Exception {
+		return anonymous().header("Cookie", cookies).get("/");
 	}
 }
