@@ -20,6 +20,7 @@ import java.net.URI;
 import net.jqwik.api.lifecycle.AfterTry;
 import net.jqwik.api.lifecycle.BeforeTry;
 import org.eclipse.jetty.server.Handler;
+import org.unigrid.oriel.server.template.Templates;
 
 /** Runs the interface on a real port for the length of one test. */
 public abstract class ServedTest {
@@ -65,7 +66,7 @@ public abstract class ServedTest {
 	protected Client admitted() throws Exception {
 		final Client client = anonymous();
 
-		client.get("/?" + Constants.SESSION_PARAMETER + "=" + token.value());
+		client.get("/?" + SessionToken.PARAMETER + "=" + token.value());
 		return client;
 	}
 }

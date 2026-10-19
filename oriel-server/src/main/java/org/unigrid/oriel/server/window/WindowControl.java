@@ -14,7 +14,7 @@
     If not, see <http://www.gnu.org/licenses/> and <https://github.com/unigrid-project/oriel>.
  */
 
-package org.unigrid.oriel.server;
+package org.unigrid.oriel.server.window;
 
 import java.nio.file.Path;
 import java.util.Arrays;

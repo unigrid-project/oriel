@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import net.jqwik.api.Example;
 import org.eclipse.jetty.server.Handler;
 import org.unigrid.oriel.server.action.Actions;
+import org.unigrid.oriel.server.window.WindowControl;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

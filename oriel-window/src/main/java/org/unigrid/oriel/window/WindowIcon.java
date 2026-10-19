@@ -29,11 +29,14 @@ import javax.imageio.ImageIO;
  * file per size beside a class of its own and names them with a pattern such as {@code "icons/app-%d.png"}.
  */
 public final class WindowIcon {
+	/* The sizes window managers and task bars ask for. */
+	private static final List<Integer> SIZES = List.of(16, 24, 32, 48, 64, 128, 256);
+
 	private WindowIcon() {
 	}
 
 	public static List<Image> images(final Class<?> owner, final String pattern) {
-		return Constants.ICON_SIZES.stream().map(size -> read(owner, pattern.formatted(size))).toList();
+		return SIZES.stream().map(size -> read(owner, pattern.formatted(size))).toList();
 	}
 
 	private static Image read(final Class<?> owner, final String name) {

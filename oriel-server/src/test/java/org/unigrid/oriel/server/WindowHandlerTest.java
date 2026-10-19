@@ -22,6 +22,7 @@ import java.util.List;
 import net.jqwik.api.Example;
 import org.eclipse.jetty.server.Handler;
 import org.unigrid.oriel.server.action.Actions;
+import org.unigrid.oriel.server.window.RecordingWindow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class WindowHandlerTest extends ServedTest {

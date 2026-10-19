@@ -16,6 +16,7 @@
 
 package org.unigrid.oriel.window;
 
+import java.io.File;
 import java.util.Objects;
 
 /**
@@ -26,12 +27,11 @@ public final class StartFailure {
 	private StartFailure() {
 	}
 
-	public static String message(final Application application, final CefLocation location,
-		final Throwable cause) {
-
+	/** The message for an engine that could not be started from the folder it was looked for in. */
+	public static String message(final Application application, final File engine, final Throwable cause) {
 		final String reason = Objects.requireNonNullElse(cause.getMessage(), cause.getClass().getSimpleName());
 
-		return application.name() + " could not start its browser engine from " + location.directory() + ".\n\n"
+		return application.name() + " could not start its browser engine from " + engine + ".\n\n"
 			+ reason + "\n\nInstall " + application.name() + " again to restore it.";
 	}
 }

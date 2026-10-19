@@ -19,7 +19,7 @@ package org.unigrid.oriel.window;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
-import org.unigrid.oriel.server.WindowControl.Edge;
+import org.unigrid.oriel.server.window.WindowControl.Edge;
 
 /** Where a window ends up once one of its edges has travelled with the pointer. */
 final class ResizeBounds {

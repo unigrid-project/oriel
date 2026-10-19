@@ -14,7 +14,7 @@
     If not, see <http://www.gnu.org/licenses/> and <https://github.com/unigrid-project/oriel>.
  */
 
-package org.unigrid.oriel.window;
+package org.unigrid.oriel.window.engine;
 
 import java.io.File;
 import java.nio.file.Path;

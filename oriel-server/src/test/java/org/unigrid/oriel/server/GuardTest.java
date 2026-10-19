@@ -43,7 +43,7 @@ public class GuardTest extends ServedTest {
 	@Example
 	public void shouldExchangeTheQueryTokenForACookie() throws Exception {
 		final Client client = anonymous();
-		final HttpResponse<String> bootstrap = client.get("/?" + Constants.SESSION_PARAMETER + "="
+		final HttpResponse<String> bootstrap = client.get("/?" + SessionToken.PARAMETER + "="
 			+ token().value());
 
 		assertEquals(200, bootstrap.statusCode(), "the redirect should have been followed to the page");
@@ -56,7 +56,7 @@ public class GuardTest extends ServedTest {
 	public void shouldRedirectToTheSamePathWithTheTokenInACookieInstead() throws Exception {
 		final HttpClient http = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NEVER).build();
 		final HttpResponse<String> response = http.send(HttpRequest.newBuilder(
-			base().resolve("/wallet?" + Constants.SESSION_PARAMETER + "=" + token().value())
+			base().resolve("/wallet?" + SessionToken.PARAMETER + "=" + token().value())
 		).build(), HttpResponse.BodyHandlers.ofString());
 		final URI location = URI.create(response.headers().firstValue("Location").orElse(""));
 		final String cookie = response.headers().firstValue("Set-Cookie").orElse("");
@@ -64,7 +64,7 @@ public class GuardTest extends ServedTest {
 		assertEquals(302, response.statusCode());
 		assertEquals("/wallet", location.getPath());
 		assertNull(location.getQuery(), location.toString());
-		assertTrue(cookie.startsWith(Constants.SESSION_COOKIE + "=" + token().value() + ";"), cookie);
+		assertTrue(cookie.startsWith(SessionToken.COOKIE + "=" + token().value() + ";"), cookie);
 		assertTrue(cookie.contains("HttpOnly"), cookie);
 		assertTrue(cookie.contains("SameSite=Strict"), cookie);
 	}
@@ -97,7 +97,7 @@ public class GuardTest extends ServedTest {
 
 	@Example
 	public void shouldFindTheSessionCookieWhereverItIsAmongOthers() throws Exception {
-		final String session = Constants.SESSION_COOKIE + "=" + token().value();
+		final String session = SessionToken.COOKIE + "=" + token().value();
 
 		assertEquals(200, sending(session + "; theme=dark").statusCode());
 		assertEquals(200, sending("theme=dark; " + session).statusCode());
@@ -112,8 +112,8 @@ public class GuardTest extends ServedTest {
 	/* Another page on this address can set a session cookie of its own, which must not lock the real one out. */
 	@Example
 	public void shouldAdmitTheTokenBesideAnotherSessionCookie() throws Exception {
-		final String session = Constants.SESSION_COOKIE + "=" + token().value();
-		final String stranger = Constants.SESSION_COOKIE + "=not-the-token";
+		final String session = SessionToken.COOKIE + "=" + token().value();
+		final String stranger = SessionToken.COOKIE + "=not-the-token";
 
 		assertEquals(200, sending(stranger + "; " + session).statusCode());
 		assertEquals(200, sending(session + "; " + stranger).statusCode());
@@ -121,9 +121,9 @@ public class GuardTest extends ServedTest {
 
 	@Example
 	public void shouldRefuseSessionCookiesThatAllHoldTheWrongToken() throws Exception {
-		final String stranger = Constants.SESSION_COOKIE + "=not-the-token";
+		final String stranger = SessionToken.COOKIE + "=not-the-token";
 
-		final String other = Constants.SESSION_COOKIE + "=nor-this";
+		final String other = SessionToken.COOKIE + "=nor-this";
 
 		assertEquals(403, sending(stranger + "; " + other + "; theme=dark").statusCode());
 	}

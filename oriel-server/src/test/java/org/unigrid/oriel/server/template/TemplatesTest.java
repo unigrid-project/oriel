@@ -14,9 +14,11 @@
     If not, see <http://www.gnu.org/licenses/> and <https://github.com/unigrid-project/oriel>.
  */
 
-package org.unigrid.oriel.server;
+package org.unigrid.oriel.server.template;
 
 import net.jqwik.api.Example;
+import org.unigrid.oriel.server.Page;
+import org.unigrid.oriel.server.Status;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TemplatesTest {

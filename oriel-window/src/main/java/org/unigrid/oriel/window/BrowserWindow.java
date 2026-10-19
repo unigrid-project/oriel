@@ -24,6 +24,7 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.net.URI;
+import java.time.Duration;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
@@ -38,10 +39,16 @@ import org.cef.CefClient;
 import org.cef.browser.CefBrowser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.unigrid.oriel.server.WindowControl;
+import org.unigrid.oriel.server.window.WindowControl;
+import org.unigrid.oriel.window.engine.CefLocation;
+import org.unigrid.oriel.window.launch.WindowSystem;
 
 public class BrowserWindow {
+	/** Opens the engine to remote debugging on the port it names; nothing listens unless it is set. */
+	public static final String DEBUGGING_PORT = "janus.remote-debugging-port";
+
 	private static final Logger LOG = LoggerFactory.getLogger(BrowserWindow.class);
+	private static final Duration SHUTDOWN_GRACE = Duration.ofSeconds(10);
 
 	private final Application application;
 	private final JFrame frame;
@@ -51,7 +58,7 @@ public class BrowserWindow {
 	public BrowserWindow(final Application application, final WindowSystem windowSystem) {
 		this.application = Objects.requireNonNull(application, "A window needs the application it belongs to");
 		this.windowSystem = Objects.requireNonNull(windowSystem,
-			"A window needs a window system; Constants.DEFAULT_WINDOW_SYSTEM when the application has no choice"
+			"A window needs a window system; WindowSystem.DEFAULT when the application has no choice"
 		);
 		this.frame = new JFrame(application.name());
 		this.control = new FrameControl(frame, application.minimumSize());
@@ -113,12 +120,12 @@ public class BrowserWindow {
 		builder.setProgressHandler(progress());
 		builder.getCefSettings().windowless_rendering_enabled = false;
 
-		if (Constants.WINDOW_SYSTEM_CHOOSABLE) {
+		if (WindowSystem.CHOOSABLE) {
 			builder.addJcefArgs(windowSystem.engineSwitch());
 		}
 
 		/* Lets the installer tests work the installed wallet's window; nothing listens unless a port is named. */
-		final Integer debuggingPort = Integer.getInteger(Constants.DEBUGGING_PORT_PROPERTY);
+		final Integer debuggingPort = Integer.getInteger(DEBUGGING_PORT);
 
 		if (debuggingPort != null) {
 			builder.getCefSettings().remote_debugging_port = debuggingPort;
@@ -185,7 +192,7 @@ public class BrowserWindow {
 				frame.setVisible(false);
 				browser.setCloseAllowed();
 				CefApp.getInstance().dispose();
-				ShutdownDeadline.start(Constants.SHUTDOWN_GRACE, () -> {
+				ShutdownDeadline.start(SHUTDOWN_GRACE, () -> {
 					LOG.warn("The browser engine did not shut down in time; ending anyway");
 					System.exit(0);
 				});

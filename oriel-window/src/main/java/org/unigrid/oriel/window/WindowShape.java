@@ -27,6 +27,9 @@ import java.util.Optional;
  * maximised, the way native windows behave.
  */
 final class WindowShape {
+	private static final int RADIUS = 12;
+	private static final int ARC = RADIUS * 2;
+
 	private WindowShape() {
 	}
 
@@ -35,8 +38,6 @@ final class WindowShape {
 			return Optional.empty();
 		}
 
-		return Optional.of(new RoundRectangle2D.Double(0, 0, size.width, size.height, Constants.CORNER_ARC,
-			Constants.CORNER_ARC
-		));
+		return Optional.of(new RoundRectangle2D.Double(0, 0, size.width, size.height, ARC, ARC));
 	}
 }

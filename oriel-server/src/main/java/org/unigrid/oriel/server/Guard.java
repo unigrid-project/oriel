@@ -51,7 +51,7 @@ class Guard extends Handler.Wrapper {
 		/* The very first navigation carries the token in the query, because there is nowhere
 		   else to put it before a cookie exists. It is exchanged for a cookie immediately so
 		   that it does not stay in the address or in referrers. */
-		if (token.matches(Request.extractQueryParameters(request).getValue(Constants.SESSION_PARAMETER))) {
+		if (token.matches(Request.extractQueryParameters(request).getValue(SessionToken.PARAMETER))) {
 			return adopt(request, response, callback);
 		}
 
@@ -60,7 +60,7 @@ class Guard extends Handler.Wrapper {
 
 	private boolean adopt(final Request request, final Response response, final Callback callback) {
 		response.getHeaders().put(HttpHeader.SET_COOKIE,
-			Constants.SESSION_COOKIE + "=" + token.value() + "; Path=/; HttpOnly; SameSite=Strict"
+			SessionToken.COOKIE + "=" + token.value() + "; Path=/; HttpOnly; SameSite=Strict"
 		);
 
 		Response.sendRedirect(request, response, callback, Request.getPathInContext(request));
@@ -80,7 +80,7 @@ class Guard extends Handler.Wrapper {
 	 */
 	private boolean holdsTheToken(final Request request) {
 		for (final HttpCookie cookie : Request.getCookies(request)) {
-			if (Constants.SESSION_COOKIE.equals(cookie.getName()) && token.matches(cookie.getValue())) {
+			if (SessionToken.COOKIE.equals(cookie.getName()) && token.matches(cookie.getValue())) {
 				return true;
 			}
 		}
