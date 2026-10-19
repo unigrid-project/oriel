@@ -22,11 +22,11 @@ import java.awt.Rectangle;
 import org.unigrid.oriel.server.WindowControl.Edge;
 
 /** Where a window ends up once one of its edges has travelled with the pointer. */
-public final class ResizeBounds {
+final class ResizeBounds {
 	private ResizeBounds() {
 	}
 
-	public static Rectangle resized(final Edge edge, final Rectangle origin, final Point travel,
+	static Rectangle resized(final Edge edge, final Rectangle origin, final Point travel,
 		final Dimension minimum) {
 
 		final int wider = Math.max(minimum.width, origin.width + travel.x);

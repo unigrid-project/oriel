@@ -24,18 +24,13 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import org.unigrid.oriel.server.action.View;
 
 public class Templates {
-	private static final String PREFIX = "templates/";
-	private static final String SUFFIX = ".html";
-	private static final String SELECTOR = "::";
-	private static final String VARIABLE = "view";
-
 	private final TemplateEngine engine = new TemplateEngine();
 
 	public Templates(final boolean cache) {
 		final ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
 
-		resolver.setPrefix(PREFIX);
-		resolver.setSuffix(SUFFIX);
+		resolver.setPrefix(Constants.TEMPLATE_ROOT);
+		resolver.setSuffix(Constants.TEMPLATE_SUFFIX);
 		resolver.setTemplateMode(TemplateMode.HTML);
 		resolver.setCharacterEncoding("UTF-8");
 
@@ -51,17 +46,17 @@ public class Templates {
 	 */
 	public String render(final View view) {
 		final String specification = view.template();
-		final int separator = specification.indexOf(SELECTOR);
+		final int separator = specification.indexOf(Constants.FRAGMENT_SELECTOR);
 		final Context context = new Context();
 
-		context.setVariable(VARIABLE, view);
+		context.setVariable(Constants.VIEW_VARIABLE, view);
 
 		if (separator < 0) {
 			return engine.process(specification.trim(), context);
 		}
 
 		return engine.process(specification.substring(0, separator).trim(),
-			Set.of(specification.substring(separator + SELECTOR.length()).trim()), context
+			Set.of(specification.substring(separator + Constants.FRAGMENT_SELECTOR.length()).trim()), context
 		);
 	}
 }

@@ -26,11 +26,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * else that happens to be running on the machine and can reach a loopback port.
  */
 public final class SessionToken {
-	public static final String COOKIE = "janus-session";
-	public static final String PARAMETER = "t";
-
-	private static final int LENGTH = 32;
-
 	private final String value;
 
 	private SessionToken(final String value) {
@@ -38,7 +33,7 @@ public final class SessionToken {
 	}
 
 	public static SessionToken random() {
-		final byte[] bytes = new byte[LENGTH];
+		final byte[] bytes = new byte[Constants.SESSION_TOKEN_BYTES];
 
 		new SecureRandom().nextBytes(bytes);
 		return new SessionToken(Base64.getUrlEncoder().withoutPadding().encodeToString(bytes));

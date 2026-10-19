@@ -28,10 +28,10 @@ import org.eclipse.jetty.util.Callback;
  * Refuses anything that cannot prove it is the interface this process opened. A loopback port is
  * reachable by every other program on the machine, and this one can move money.
  */
-public class Guard extends Handler.Wrapper {
+class Guard extends Handler.Wrapper {
 	private final SessionToken token;
 
-	public Guard(final Handler handler, final SessionToken token) {
+	Guard(final Handler handler, final SessionToken token) {
 		super(handler);
 		this.token = token;
 	}
@@ -51,7 +51,7 @@ public class Guard extends Handler.Wrapper {
 		/* The very first navigation carries the token in the query, because there is nowhere
 		   else to put it before a cookie exists. It is exchanged for a cookie immediately so
 		   that it does not stay in the address or in referrers. */
-		if (token.matches(Request.extractQueryParameters(request).getValue(SessionToken.PARAMETER))) {
+		if (token.matches(Request.extractQueryParameters(request).getValue(Constants.SESSION_PARAMETER))) {
 			return adopt(request, response, callback);
 		}
 
@@ -60,7 +60,7 @@ public class Guard extends Handler.Wrapper {
 
 	private boolean adopt(final Request request, final Response response, final Callback callback) {
 		response.getHeaders().put(HttpHeader.SET_COOKIE,
-			SessionToken.COOKIE + "=" + token.value() + "; Path=/; HttpOnly; SameSite=Strict"
+			Constants.SESSION_COOKIE + "=" + token.value() + "; Path=/; HttpOnly; SameSite=Strict"
 		);
 
 		Response.sendRedirect(request, response, callback, Request.getPathInContext(request));
@@ -80,7 +80,7 @@ public class Guard extends Handler.Wrapper {
 	 */
 	private boolean holdsTheToken(final Request request) {
 		for (final HttpCookie cookie : Request.getCookies(request)) {
-			if (SessionToken.COOKIE.equals(cookie.getName()) && token.matches(cookie.getValue())) {
+			if (Constants.SESSION_COOKIE.equals(cookie.getName()) && token.matches(cookie.getValue())) {
 				return true;
 			}
 		}

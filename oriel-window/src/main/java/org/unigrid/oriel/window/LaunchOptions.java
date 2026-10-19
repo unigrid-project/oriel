@@ -16,52 +16,89 @@
 
 package org.unigrid.oriel.window;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
-import picocli.CommandLine;
-import picocli.CommandLine.Command;
-import picocli.CommandLine.Model.CommandSpec;
-import picocli.CommandLine.Model.OptionSpec;
-import picocli.CommandLine.Option;
 
-@Command(name = "Unigrid", description = "The Unigrid Control Center.")
-public final class LaunchOptions {
-	private static final String WINDOW_SYSTEM = "--window-system";
-
-	@Option(names = WINDOW_SYSTEM, paramLabel = "<system>", defaultValue = "x11",
-		description = "What the page is drawn on in a Linux desktop session: x11, wayland or auto "
-			+ "(defaults to ${DEFAULT-VALUE}, which embeds it in the window on X11 and Wayland desktops alike)."
-	)
-	private WindowSystem windowSystem;
-
-	@Option(names = { "-h", "--help" }, usageHelp = true, description = "Show this help and exit.")
-	private boolean help;
-
-	private LaunchOptions() {
+/**
+ * The window system Oriel takes from the command line, and the arguments it leaves to the application. The command
+ * line belongs to the application: Oriel takes out its own argument and hands the rest back, untouched and in
+ * order, to be read however the application likes. It neither prints nor exits; what a mistake leads to is the
+ * application's to decide.
+ */
+public record LaunchOptions(WindowSystem windowSystem, List<String> remaining) {
+	public LaunchOptions {
+		remaining = List.copyOf(remaining);
 	}
 
-	/** Empty when the help was asked for, which has then been printed instead. */
-	public static Optional<LaunchOptions> of(final String... args) {
-		return of(WindowSystem.CHOOSABLE, args);
-	}
+	/**
+	 * Takes the window system out of the arguments. Outside Linux it is still taken and checked, so that one way of
+	 * starting works everywhere, but it changes nothing there.
+	 *
+	 * @throws IllegalArgumentException when the window system has no value, one it does not know, or is given twice
+	 */
+	public static LaunchOptions of(final String... args) {
+		final Iterator<String> arguments = List.of(args).iterator();
+		final List<String> chosen = new ArrayList<>();
+		final List<String> remaining = new ArrayList<>();
 
-	/* Where there is no window system to choose, the option is still taken but kept out of the help. */
-	static Optional<LaunchOptions> of(final boolean windowSystemChoosable, final String... args) {
-		final LaunchOptions options = new LaunchOptions();
-		final CommandLine commandLine = new CommandLine(options).setCaseInsensitiveEnumValuesAllowed(true);
+		while (arguments.hasNext()) {
+			final String argument = arguments.next();
 
-		if (!windowSystemChoosable) {
-			final CommandSpec spec = commandLine.getCommandSpec();
-			final OptionSpec windowSystem = spec.findOption(WINDOW_SYSTEM);
-
-			spec.remove(windowSystem);
-			spec.addOption(OptionSpec.builder(windowSystem).hidden(true).build());
+			if (Constants.END_OF_OPTIONS.equals(argument)) {
+				remaining.add(argument);
+				arguments.forEachRemaining(remaining::add);
+			} else if (isWindowSystem(argument)) {
+				chosen.add(valueOf(argument, arguments));
+			} else {
+				remaining.add(argument);
+			}
 		}
 
-		return CommandLine.printHelpIfRequested(commandLine.parseArgs(args)) ? Optional.empty()
-			: Optional.of(options);
+		if (chosen.size() > 1) {
+			throw new IllegalArgumentException(Constants.WINDOW_SYSTEM_OPTION + " is given more than once");
+		}
+
+		return new LaunchOptions(chosen.stream().map(LaunchOptions::windowSystem).findFirst()
+			.orElse(Constants.DEFAULT_WINDOW_SYSTEM), remaining);
 	}
 
-	public WindowSystem windowSystem() {
-		return windowSystem;
+	/** A line for the application's own help; empty where there is no window system to choose. */
+	public static Optional<String> help() {
+		return help(Constants.WINDOW_SYSTEM_CHOOSABLE);
+	}
+
+	static Optional<String> help(final boolean windowSystemChoosable) {
+		return Optional.of(Constants.WINDOW_SYSTEM_OPTION + "=<system>  What the page is drawn on in a Linux "
+			+ "desktop session: " + WindowSystem.labels() + " (defaults to "
+			+ Constants.DEFAULT_WINDOW_SYSTEM.label() + ", which embeds it in the window on X11 and Wayland "
+			+ "desktops alike)."
+		).filter(line -> windowSystemChoosable);
+	}
+
+	private static boolean isWindowSystem(final String argument) {
+		return Constants.WINDOW_SYSTEM_OPTION.equals(argument)
+			|| argument.startsWith(Constants.WINDOW_SYSTEM_ASSIGNED);
+	}
+
+	/* The value either follows an equals sign or is the next argument. */
+	private static String valueOf(final String argument, final Iterator<String> arguments) {
+		if (argument.startsWith(Constants.WINDOW_SYSTEM_ASSIGNED)) {
+			return argument.substring(Constants.WINDOW_SYSTEM_ASSIGNED.length());
+		}
+
+		if (!arguments.hasNext()) {
+			throw new IllegalArgumentException(Constants.WINDOW_SYSTEM_OPTION + " needs a value: "
+				+ WindowSystem.labels());
+		}
+
+		return arguments.next();
+	}
+
+	private static WindowSystem windowSystem(final String label) {
+		return WindowSystem.labelled(label).orElseThrow(() -> new IllegalArgumentException(
+			Constants.WINDOW_SYSTEM_OPTION + " does not know '" + label + "'; it takes " + WindowSystem.labels()
+		));
 	}
 }

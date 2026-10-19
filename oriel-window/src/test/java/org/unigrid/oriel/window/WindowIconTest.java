@@ -20,20 +20,32 @@ import java.awt.Image;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class WindowIconTest {
+	static final String ICONS = "icons/test-%d.png";
+
 	@Test
-	public void shouldProvideTheLogoAtEveryStandardIconSize() {
+	public void shouldReadTheIconAtEveryStandardSize() {
 		assertEquals(
 			List.of(16, 24, 32, 48, 64, 128, 256),
-			WindowIcon.images().stream().map(image -> image.getWidth(null)).toList()
+			WindowIcon.images(WindowIconTest.class, ICONS).stream().map(image -> image.getWidth(null)).toList()
 		);
 	}
 
 	@Test
-	public void shouldDrawEverySizeSquare() {
-		for (Image image : WindowIcon.images()) {
+	public void shouldReadEverySizeSquare() {
+		for (Image image : WindowIcon.images(WindowIconTest.class, ICONS)) {
 			assertEquals(image.getWidth(null), image.getHeight(null));
 		}
+	}
+
+	@Test
+	public void shouldSayWhichIconIsMissing() {
+		final IllegalArgumentException missing = assertThrows(IllegalArgumentException.class,
+			() -> WindowIcon.images(WindowIconTest.class, "icons/none-%d.png"));
+
+		assertEquals("There is no icon icons/none-16.png beside " + WindowIconTest.class.getName(),
+			missing.getMessage());
 	}
 }

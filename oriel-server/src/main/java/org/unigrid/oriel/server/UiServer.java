@@ -25,22 +25,20 @@ public class UiServer {
 	/* The wallet holds keys, so the interface is never reachable from off the machine.
 	   Port zero keeps it off a predictable address that another local process could
 	   guess ahead of time. */
-	private static final String LOOPBACK = "127.0.0.1";
-	private static final int EPHEMERAL = 0;
 
 	private final Server server = new Server();
 	private final ServerConnector connector = new ServerConnector(server);
 
 	public UiServer(final Handler handler) {
-		connector.setHost(LOOPBACK);
-		connector.setPort(EPHEMERAL);
+		connector.setHost(Constants.LOOPBACK);
+		connector.setPort(Constants.EPHEMERAL_PORT);
 		server.addConnector(connector);
 		server.setHandler(handler);
 	}
 
 	public URI start() throws Exception {
 		server.start();
-		return URI.create("http://" + LOOPBACK + ":" + connector.getLocalPort() + "/");
+		return URI.create("http://" + Constants.LOOPBACK + ":" + connector.getLocalPort() + "/");
 	}
 
 	public void stop() throws Exception {

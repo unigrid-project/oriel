@@ -38,18 +38,17 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import org.unigrid.oriel.server.WindowControl;
 
-public class FrameControl implements WindowControl {
-	private static final int FOLLOW_INTERVAL = 10;
-	private static final Dimension MINIMUM = new Dimension(900, 640);
-
+class FrameControl implements WindowControl {
 	private final JFrame frame;
-	private final Timer follow = new Timer(FOLLOW_INTERVAL, event -> follow());
+	private final Dimension minimum;
+	private final Timer follow = new Timer(Constants.FOLLOW_INTERVAL_MILLIS, event -> follow());
 	private final AtomicBoolean asking = new AtomicBoolean();
 
 	private Consumer<Point> tracking;
 
-	public FrameControl(final JFrame frame) {
+	FrameControl(final JFrame frame, final Dimension minimum) {
 		this.frame = frame;
+		this.minimum = new Dimension(minimum);
 	}
 
 	@Override
@@ -107,7 +106,7 @@ public class FrameControl implements WindowControl {
 			final Rectangle origin = frame.getBounds();
 
 			track(at -> frame.setBounds(
-				ResizeBounds.resized(edge, origin, new Point(at.x - pointer.x, at.y - pointer.y), MINIMUM)
+				ResizeBounds.resized(edge, origin, new Point(at.x - pointer.x, at.y - pointer.y), minimum)
 			));
 		});
 	}

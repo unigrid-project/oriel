@@ -19,27 +19,32 @@ package org.unigrid.oriel.window;
 import java.awt.Image;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.URL;
 import java.util.List;
-import java.util.stream.IntStream;
 import javax.imageio.ImageIO;
 
 /**
- * The Unigrid logo at the sizes window managers and task bars ask for. Each size is drawn
- * ahead of time because scaling the large logo down at run time leaves the small ones blurred.
+ * An application's icon at the sizes window managers and task bars ask for. Each size is drawn ahead of time,
+ * because scaling one large image down at run time leaves the small ones blurred, so the application keeps one
+ * file per size beside a class of its own and names them with a pattern such as {@code "icons/app-%d.png"}.
  */
 public final class WindowIcon {
-	private static final int[] SIZES = {16, 24, 32, 48, 64, 128, 256};
-
 	private WindowIcon() {
 	}
 
-	public static List<Image> images() {
-		return IntStream.of(SIZES).mapToObj(WindowIcon::read).toList();
+	public static List<Image> images(final Class<?> owner, final String pattern) {
+		return Constants.ICON_SIZES.stream().map(size -> read(owner, pattern.formatted(size))).toList();
 	}
 
-	private static Image read(final int size) {
+	private static Image read(final Class<?> owner, final String name) {
+		final URL resource = owner.getResource(name);
+
+		if (resource == null) {
+			throw new IllegalArgumentException("There is no icon " + name + " beside " + owner.getName());
+		}
+
 		try {
-			return ImageIO.read(WindowIcon.class.getResource("icons/unigrid-%d.png".formatted(size)));
+			return ImageIO.read(resource);
 		} catch (IOException ex) {
 			throw new UncheckedIOException(ex);
 		}

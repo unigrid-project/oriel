@@ -25,13 +25,6 @@ import org.unigrid.oriel.server.action.Actions;
 import org.unigrid.oriel.server.action.View;
 
 public final class Routes {
-	private static final String ASSETS = "static/";
-	private static final String ASSET_PATH = "/static";
-	private static final String SCRIPTS = "oriel/";
-	private static final String SCRIPT_PATH = "/oriel";
-	private static final String WINDOW_PATH = "/window";
-	private static final String ACTION_PATH = "/action";
-
 	private Routes() {
 	}
 
@@ -51,10 +44,10 @@ public final class Routes {
 		/* Anything the file handlers do not recognise falls through to the pages,
 		   so an unknown path renders the interface rather than a Jetty error page. */
 		return new Guard(new Handler.Sequence(
-			new ContextHandler(files(ASSETS), ASSET_PATH),
-			new ContextHandler(files(SCRIPTS), SCRIPT_PATH),
-			new ContextHandler(new WindowHandler(window), WINDOW_PATH),
-			new ContextHandler(new ActionHandler(actions, templates), ACTION_PATH),
+			new ContextHandler(files(Constants.ASSET_ROOT), Constants.ASSET_PATH),
+			new ContextHandler(files(Constants.SCRIPT_ROOT), Constants.SCRIPT_PATH),
+			new ContextHandler(new WindowHandler(window), Constants.WINDOW_PATH),
+			new ContextHandler(new ActionHandler(actions, templates), Constants.ACTION_PATH),
 			new UiHandler(templates, index)
 		), token);
 	}

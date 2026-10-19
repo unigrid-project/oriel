@@ -17,7 +17,6 @@
 package org.unigrid.oriel.window;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.event.ComponentAdapter;
@@ -25,12 +24,15 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.net.URI;
-import java.time.Duration;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import me.friwi.jcefmaven.CefAppBuilder;
+import me.friwi.jcefmaven.EnumProgress;
+import me.friwi.jcefmaven.IProgressHandler;
 import me.friwi.jcefmaven.MavenCefAppHandlerAdapter;
-import me.friwi.jcefmaven.impl.progress.ConsoleProgressHandler;
 import org.cef.CefApp;
 import org.cef.CefClient;
 import org.cef.browser.CefBrowser;
@@ -39,26 +41,32 @@ import org.slf4j.LoggerFactory;
 import org.unigrid.oriel.server.WindowControl;
 
 public class BrowserWindow {
-	public static final String DEBUGGING_PORT = "janus.remote-debugging-port";
-
 	private static final Logger LOG = LoggerFactory.getLogger(BrowserWindow.class);
-	private static final Dimension SIZE = new Dimension(1240, 800);
-	private static final Duration SHUTDOWN_GRACE = Duration.ofSeconds(10);
-	private static final String TITLE = "Unigrid";
 
-	private final JFrame frame = new JFrame(TITLE);
-	private final FrameControl control = new FrameControl(frame);
+	private final Application application;
+	private final JFrame frame;
+	private final FrameControl control;
 	private final WindowSystem windowSystem;
 
-	public BrowserWindow(final WindowSystem windowSystem) {
-		this.windowSystem = windowSystem;
+	public BrowserWindow(final Application application, final WindowSystem windowSystem) {
+		this.application = Objects.requireNonNull(application, "A window needs the application it belongs to");
+		this.windowSystem = Objects.requireNonNull(windowSystem,
+			"A window needs a window system; Constants.DEFAULT_WINDOW_SYSTEM when the application has no choice"
+		);
+		this.frame = new JFrame(application.name());
+		this.control = new FrameControl(frame, application.minimumSize());
 
 		/* The title bar and its buttons are drawn by the page, so the frame contributes
 		   nothing but its outline. Decoration has to be settled before the frame is
 		   realised, which is why it happens here rather than alongside the sizing. */
 		frame.setUndecorated(true);
 		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		frame.setIconImages(WindowIcon.images());
+
+		/* Without icons of its own the window keeps the ones the desktop gives any Java application. */
+		if (!application.icons().isEmpty()) {
+			frame.setIconImages(application.icons());
+		}
+
 		fitShapeToFrame();
 	}
 
@@ -102,15 +110,15 @@ public class BrowserWindow {
 		/* The folder of an installed application is not ours to write to, so a missing or damaged engine
 		   there has to fail with the engine's own error rather than trigger a download or a deletion. */
 		builder.setSkipInstallation(location.isBundled());
-		builder.setProgressHandler(new ConsoleProgressHandler());
+		builder.setProgressHandler(progress());
 		builder.getCefSettings().windowless_rendering_enabled = false;
 
-		if (WindowSystem.CHOOSABLE) {
+		if (Constants.WINDOW_SYSTEM_CHOOSABLE) {
 			builder.addJcefArgs(windowSystem.engineSwitch());
 		}
 
 		/* Lets the installer tests work the installed wallet's window; nothing listens unless a port is named. */
-		final Integer debuggingPort = Integer.getInteger(DEBUGGING_PORT);
+		final Integer debuggingPort = Integer.getInteger(Constants.DEBUGGING_PORT_PROPERTY);
 
 		if (debuggingPort != null) {
 			builder.getCefSettings().remote_debugging_port = debuggingPort;
@@ -145,11 +153,22 @@ public class BrowserWindow {
 		SwingUtilities.invokeLater(() -> {
 			/* The work area leaves out the taskbar, and on a scaled display it is counted in the same
 			   logical pixels as the size, so a small or scaled screen still shows the whole window. */
-			frame.setBounds(OpeningBounds.centred(SIZE,
+			frame.setBounds(OpeningBounds.centred(application.size(),
 				GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds()));
 			frame.setVisible(true);
 			browser.getUIComponent().repaint();
 		});
+	}
+
+	/* Getting the engine ready can take a while the first time it is downloaded, so each stage is logged, once. */
+	private static IProgressHandler progress() {
+		final AtomicReference<EnumProgress> last = new AtomicReference<>();
+
+		return (state, percent) -> {
+			if (last.getAndSet(state) != state) {
+				LOG.info("Preparing the browser engine: {}", state.name().toLowerCase(Locale.ROOT));
+			}
+		};
 	}
 
 	/* Chromium answers a close request by asking the window to close and cancels its own
@@ -166,7 +185,7 @@ public class BrowserWindow {
 				frame.setVisible(false);
 				browser.setCloseAllowed();
 				CefApp.getInstance().dispose();
-				ShutdownDeadline.start(SHUTDOWN_GRACE, () -> {
+				ShutdownDeadline.start(Constants.SHUTDOWN_GRACE, () -> {
 					LOG.warn("The browser engine did not shut down in time; ending anyway");
 					System.exit(0);
 				});

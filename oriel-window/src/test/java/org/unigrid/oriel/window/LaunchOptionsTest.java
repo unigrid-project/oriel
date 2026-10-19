@@ -16,73 +16,92 @@
 
 package org.unigrid.oriel.window;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
+import java.util.List;
 import org.junit.jupiter.api.Test;
-import picocli.CommandLine;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class LaunchOptionsTest {
-	private static final String WINDOW_SYSTEM = "--window-system";
+	@Test
+	public void shouldDrawOnX11AndLeaveEverythingToTheApplicationWhenNothingIsSaid() {
+		final LaunchOptions options = LaunchOptions.of("--ledger", "books.csv");
+
+		assertEquals(WindowSystem.X11, options.windowSystem());
+		assertEquals(List.of("--ledger", "books.csv"), options.remaining());
+	}
 
 	@Test
-	public void shouldDrawOnX11WhenNothingIsSaid() {
-		assertEquals(WindowSystem.X11, LaunchOptions.of().orElseThrow().windowSystem());
+	public void shouldTakeTheWindowSystemWithOrWithoutAnEqualsSign() {
+		assertEquals(WindowSystem.WAYLAND, LaunchOptions.of("--window-system=wayland").windowSystem());
+		assertEquals(WindowSystem.WAYLAND, LaunchOptions.of("--window-system", "wayland").windowSystem());
 	}
 
 	@Test
 	public void shouldTakeTheWindowSystemInAnyCase() {
-		assertEquals(WindowSystem.WAYLAND, LaunchOptions.of("--window-system=wayland").orElseThrow().windowSystem());
-		assertEquals(WindowSystem.AUTO, LaunchOptions.of("--window-system", "Auto").orElseThrow().windowSystem());
+		assertEquals(WindowSystem.AUTO, LaunchOptions.of("--window-system=Auto").windowSystem());
+		assertEquals(WindowSystem.X11, LaunchOptions.of("--window-system", "X11").windowSystem());
+	}
+
+	@Test
+	public void shouldTakeOutOnlyItsOwnAndKeepTheRestInOrder() {
+		final LaunchOptions options = LaunchOptions.of("first.csv", "--window-system", "auto", "--verbose",
+			"--window-system-extra=1", "second.csv");
+
+		assertEquals(WindowSystem.AUTO, options.windowSystem());
+		assertEquals(List.of("first.csv", "--verbose", "--window-system-extra=1", "second.csv"),
+			options.remaining());
+	}
+
+	@Test
+	public void shouldLeaveEverythingAfterTheEndOfTheOptionsToTheApplication() {
+		final LaunchOptions options = LaunchOptions.of("--window-system=auto", "--", "--window-system=wayland");
+
+		assertEquals(WindowSystem.AUTO, options.windowSystem());
+		assertEquals(List.of("--", "--window-system=wayland"), options.remaining());
 	}
 
 	@Test
 	public void shouldRefuseAWindowSystemItDoesNotKnow() {
-		assertThrows(CommandLine.ParameterException.class, () -> LaunchOptions.of("--window-system=mir"));
+		final IllegalArgumentException refused = assertThrows(IllegalArgumentException.class,
+			() -> LaunchOptions.of("--window-system=mir"));
+
+		assertTrue(refused.getMessage().contains("x11, wayland, auto"), refused.getMessage());
 	}
 
 	@Test
-	public void shouldRefuseAnOptionItDoesNotKnow() {
-		assertThrows(CommandLine.ParameterException.class, () -> LaunchOptions.of("--frobnicate"));
+	public void shouldRefuseAWindowSystemWithoutAValue() {
+		assertThrows(IllegalArgumentException.class, () -> LaunchOptions.of("--window-system"));
+		assertThrows(IllegalArgumentException.class, () -> LaunchOptions.of("--window-system="));
 	}
 
 	@Test
-	public void shouldStartNothingWhenAskedForHelp() {
-		assertTrue(LaunchOptions.of("--help").isEmpty());
+	public void shouldRefuseTheWindowSystemTwice() {
+		assertThrows(IllegalArgumentException.class,
+			() -> LaunchOptions.of("--window-system=x11", "--window-system=auto"));
 	}
 
 	@Test
-	public void shouldOfferTheWindowSystemWhereItCanBeChosen() {
-		final String help = help(true);
+	public void shouldNotKeepTheApplicationsListLinkedToTheArgumentsGiven() {
+		final String[] args = {"books.csv"};
+		final LaunchOptions options = LaunchOptions.of(args);
 
-		assertTrue(help.contains(WINDOW_SYSTEM), help);
+		args[0] = "changed.csv";
+
+		assertEquals(List.of("books.csv"), options.remaining());
+		assertThrows(UnsupportedOperationException.class, () -> options.remaining().add("more.csv"));
 	}
 
 	@Test
-	public void shouldKeepTheWindowSystemOutOfTheHelpWhereItCannotBeChosen() {
-		final String help = help(false);
+	public void shouldOfferAHelpLineWhereTheWindowSystemCanBeChosen() {
+		final String help = LaunchOptions.help(true).orElseThrow();
 
-		assertFalse(help.contains(WINDOW_SYSTEM), help);
-		assertEquals(WindowSystem.WAYLAND, LaunchOptions.of(false, WINDOW_SYSTEM + "=wayland").orElseThrow()
-			.windowSystem());
+		assertTrue(help.startsWith(Constants.WINDOW_SYSTEM_OPTION), help);
+		assertTrue(help.contains("defaults to x11"), help);
 	}
 
-	private static String help(final boolean windowSystemChoosable) {
-		final PrintStream stdout = System.out;
-		final ByteArrayOutputStream printed = new ByteArrayOutputStream();
-
-		System.setOut(new PrintStream(printed, true, StandardCharsets.UTF_8));
-
-		try {
-			LaunchOptions.of(windowSystemChoosable, "--help");
-		} finally {
-			System.setOut(stdout);
-		}
-
-		return printed.toString(StandardCharsets.UTF_8);
+	@Test
+	public void shouldOfferNoHelpLineWhereTheWindowSystemCannotBeChosen() {
+		assertTrue(LaunchOptions.help(false).isEmpty());
 	}
 }

@@ -26,18 +26,17 @@ import java.util.Optional;
  * The outline of the main window: rounded corners while it floats and square corners while it is
  * maximised, the way native windows behave.
  */
-public final class WindowShape {
-	private static final int RADIUS = 12;
-	private static final int ARC = RADIUS * 2;
-
+final class WindowShape {
 	private WindowShape() {
 	}
 
-	public static Optional<Shape> of(final int extendedState, final Dimension size) {
+	static Optional<Shape> of(final int extendedState, final Dimension size) {
 		if ((extendedState & Frame.MAXIMIZED_BOTH) == Frame.MAXIMIZED_BOTH) {
 			return Optional.empty();
 		}
 
-		return Optional.of(new RoundRectangle2D.Double(0, 0, size.width, size.height, ARC, ARC));
+		return Optional.of(new RoundRectangle2D.Double(0, 0, size.width, size.height, Constants.CORNER_ARC,
+			Constants.CORNER_ARC
+		));
 	}
 }

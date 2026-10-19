@@ -20,11 +20,11 @@ import java.awt.Dimension;
 import java.awt.Rectangle;
 
 /** Where a window first appears: at the size it prefers, unless the screen has less room than that. */
-public final class OpeningBounds {
+final class OpeningBounds {
 	private OpeningBounds() {
 	}
 
-	public static Rectangle centred(final Dimension preferred, final Rectangle workArea) {
+	static Rectangle centred(final Dimension preferred, final Rectangle workArea) {
 		final int width = Math.min(preferred.width, workArea.width);
 		final int height = Math.min(preferred.height, workArea.height);
 

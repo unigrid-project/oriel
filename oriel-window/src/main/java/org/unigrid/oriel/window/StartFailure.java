@@ -26,10 +26,12 @@ public final class StartFailure {
 	private StartFailure() {
 	}
 
-	public static String message(final CefLocation location, final Throwable cause) {
+	public static String message(final Application application, final CefLocation location,
+		final Throwable cause) {
+
 		final String reason = Objects.requireNonNullElse(cause.getMessage(), cause.getClass().getSimpleName());
 
-		return "Janus could not start its browser engine from " + location.directory() + ".\n\n" + reason
-			+ "\n\nInstall Janus again to restore it.";
+		return application.name() + " could not start its browser engine from " + location.directory() + ".\n\n"
+			+ reason + "\n\nInstall " + application.name() + " again to restore it.";
 	}
 }

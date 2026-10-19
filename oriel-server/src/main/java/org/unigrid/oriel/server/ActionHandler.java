@@ -33,13 +33,11 @@ import org.unigrid.oriel.server.action.Form;
 import org.unigrid.oriel.server.action.View;
 
 @Slf4j
-public class ActionHandler extends Handler.Abstract {
-	private static final String HTML = "text/html;charset=utf-8";
-
+class ActionHandler extends Handler.Abstract {
 	private final Actions actions;
 	private final Templates templates;
 
-	public ActionHandler(final Actions actions, final Templates templates) {
+	ActionHandler(final Actions actions, final Templates templates) {
 		this.actions = actions;
 		this.templates = templates;
 	}
@@ -79,7 +77,7 @@ public class ActionHandler extends Handler.Abstract {
 		final byte[] body = templates.render(shown.get()).getBytes(StandardCharsets.UTF_8);
 
 		response.setStatus(HttpStatus.OK_200);
-		response.getHeaders().put(HttpHeader.CONTENT_TYPE, HTML);
+		response.getHeaders().put(HttpHeader.CONTENT_TYPE, Constants.HTML);
 		response.write(true, ByteBuffer.wrap(body), callback);
 		return true;
 	}

@@ -25,14 +25,11 @@ import java.util.Objects;
  * folder through a property; a development run has no such property and keeps the engine in the home folder.
  */
 public class CefLocation {
-	public static final String PROPERTY = "janus.jcef";
-	private static final String HOME_FOLDER = ".janus/jcef";
-
 	private final String bundled;
 	private final Path home;
 
 	public CefLocation() {
-		this(System.getProperty(PROPERTY), Path.of(System.getProperty("user.home")));
+		this(System.getProperty(Constants.ENGINE_FOLDER_PROPERTY), Path.of(System.getProperty("user.home")));
 	}
 
 	CefLocation(final String bundled, final Path home) {
@@ -45,6 +42,6 @@ public class CefLocation {
 	}
 
 	public File directory() {
-		return isBundled() ? new File(bundled) : home.resolve(HOME_FOLDER).toFile();
+		return isBundled() ? new File(bundled) : home.resolve(Constants.ENGINE_HOME_FOLDER).toFile();
 	}
 }

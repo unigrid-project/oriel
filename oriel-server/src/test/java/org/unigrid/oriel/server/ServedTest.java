@@ -65,7 +65,7 @@ public abstract class ServedTest {
 	protected Client admitted() throws Exception {
 		final Client client = anonymous();
 
-		client.get("/?" + SessionToken.PARAMETER + "=" + token.value());
+		client.get("/?" + Constants.SESSION_PARAMETER + "=" + token.value());
 		return client;
 	}
 }
