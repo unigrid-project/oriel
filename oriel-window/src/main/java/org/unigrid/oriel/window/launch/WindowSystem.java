@@ -14,7 +14,7 @@
     If not, see <http://www.gnu.org/licenses/> and <https://github.com/unigrid-project/oriel>.
  */
 
-package org.unigrid.oriel.window;
+package org.unigrid.oriel.window.launch;
 
 import java.util.Arrays;
 import java.util.Locale;
@@ -32,6 +32,12 @@ public enum WindowSystem {
 	WAYLAND("--ozone-platform=wayland"),
 	AUTO("--ozone-platform-hint=auto");
 
+	/** X11 embeds the page in the window on X11 and Wayland desktops alike. */
+	public static final WindowSystem DEFAULT = X11;
+
+	/** Only a Linux desktop session leaves the engine a window system to choose. */
+	public static final boolean CHOOSABLE = System.getProperty("os.name").startsWith("Linux");
+
 	private final String engineSwitch;
 
 	WindowSystem(final String engineSwitch) {
@@ -43,17 +49,17 @@ public enum WindowSystem {
 	}
 
 	/** The name it goes by on the command line. */
-	public String label() {
+	String label() {
 		return name().toLowerCase(Locale.ROOT);
 	}
 
 	/** The window system a label names, in any case. */
-	public static Optional<WindowSystem> labelled(final String label) {
+	static Optional<WindowSystem> labelled(final String label) {
 		return Arrays.stream(values()).filter(system -> system.label().equalsIgnoreCase(label)).findFirst();
 	}
 
 	/** Every label, for a message that has to list them. */
-	public static String labels() {
+	static String labels() {
 		return Arrays.stream(values()).map(WindowSystem::label).collect(Collectors.joining(", "));
 	}
 }

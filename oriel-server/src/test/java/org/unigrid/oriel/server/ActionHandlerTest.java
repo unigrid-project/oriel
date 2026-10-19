@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.unigrid.oriel.server.action.Action;
 import org.unigrid.oriel.server.action.Actions;
 import org.unigrid.oriel.server.action.Form;
+import org.unigrid.oriel.server.window.WindowControl;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

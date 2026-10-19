@@ -14,7 +14,7 @@
     If not, see <http://www.gnu.org/licenses/> and <https://github.com/unigrid-project/oriel>.
  */
 
-package org.unigrid.oriel.server;
+package org.unigrid.oriel.server.template;
 
 import java.util.Set;
 import org.thymeleaf.TemplateEngine;
@@ -24,13 +24,19 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import org.unigrid.oriel.server.action.View;
 
 public class Templates {
+	/* How a view names its template: the file under the prefix, then optionally a fragment of it. */
+	private static final String PREFIX = "templates/";
+	private static final String SUFFIX = ".html";
+	private static final String SELECTOR = "::";
+	private static final String VARIABLE = "view";
+
 	private final TemplateEngine engine = new TemplateEngine();
 
 	public Templates(final boolean cache) {
 		final ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
 
-		resolver.setPrefix(Constants.TEMPLATE_ROOT);
-		resolver.setSuffix(Constants.TEMPLATE_SUFFIX);
+		resolver.setPrefix(PREFIX);
+		resolver.setSuffix(SUFFIX);
 		resolver.setTemplateMode(TemplateMode.HTML);
 		resolver.setCharacterEncoding("UTF-8");
 
@@ -46,17 +52,17 @@ public class Templates {
 	 */
 	public String render(final View view) {
 		final String specification = view.template();
-		final int separator = specification.indexOf(Constants.FRAGMENT_SELECTOR);
+		final int separator = specification.indexOf(SELECTOR);
 		final Context context = new Context();
 
-		context.setVariable(Constants.VIEW_VARIABLE, view);
+		context.setVariable(VARIABLE, view);
 
 		if (separator < 0) {
 			return engine.process(specification.trim(), context);
 		}
 
 		return engine.process(specification.substring(0, separator).trim(),
-			Set.of(specification.substring(separator + Constants.FRAGMENT_SELECTOR.length()).trim()), context
+			Set.of(specification.substring(separator + SELECTOR.length()).trim()), context
 		);
 	}
 }

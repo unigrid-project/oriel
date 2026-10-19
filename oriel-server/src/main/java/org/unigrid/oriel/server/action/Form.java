@@ -20,10 +20,13 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import org.unigrid.oriel.server.Constants;
 
 /** The values a form carried, so that an action reads what it was given rather than a request. */
 public final class Form {
+	/* A submitted form is name=value pairs joined by ampersands. */
+	private static final String PAIRS = "&";
+	private static final String ASSIGN = "=";
+
 	private final Map<String, String> values;
 
 	private Form(final Map<String, String> values) {
@@ -34,8 +37,8 @@ public final class Form {
 		final Map<String, String> values = new LinkedHashMap<>();
 
 		if (body != null && !body.isBlank()) {
-			for (final String pair : body.split(Constants.FORM_PAIRS)) {
-				final int at = pair.indexOf(Constants.FORM_ASSIGN);
+			for (final String pair : body.split(PAIRS)) {
+				final int at = pair.indexOf(ASSIGN);
 
 				if (at > 0) {
 					values.put(decode(pair.substring(0, at)), decode(pair.substring(at + 1)));

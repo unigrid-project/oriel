@@ -14,7 +14,7 @@
     If not, see <http://www.gnu.org/licenses/> and <https://github.com/unigrid-project/oriel>.
  */
 
-package org.unigrid.oriel.window;
+package org.unigrid.oriel.window.launch;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -96,7 +96,7 @@ public class LaunchOptionsTest {
 	public void shouldOfferAHelpLineWhereTheWindowSystemCanBeChosen() {
 		final String help = LaunchOptions.help(true).orElseThrow();
 
-		assertTrue(help.startsWith(Constants.WINDOW_SYSTEM_OPTION), help);
+		assertTrue(help.startsWith(LaunchOptions.WINDOW_SYSTEM), help);
 		assertTrue(help.contains("defaults to x11"), help);
 	}
 

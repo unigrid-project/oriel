@@ -28,9 +28,18 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.Fields;
-import org.unigrid.oriel.server.WindowControl.Edge;
+import org.unigrid.oriel.server.window.WindowControl;
+import org.unigrid.oriel.server.window.WindowControl.Edge;
 
 class WindowHandler extends Handler.Abstract {
+	/* The commands that take more than their name, and what their dialogs are told. */
+	private static final String RESIZE_START = "resize/start/";
+	private static final String CHOOSE_FILE = "choose-file";
+	private static final String SAVE_FILE = "save-file";
+	private static final String NAME = "name";
+	private static final String TITLE = "title";
+	private static final String TEXT = "text/plain;charset=utf-8";
+
 	private final WindowControl window;
 
 	WindowHandler(final WindowControl window) {
@@ -42,12 +51,12 @@ class WindowHandler extends Handler.Abstract {
 		final String command = Request.getPathInContext(request).substring(1);
 		final Fields query = Request.extractQueryParameters(request);
 
-		if (Constants.CHOOSE_FILE.equals(command)) {
+		if (CHOOSE_FILE.equals(command)) {
 			return answerWith(window.chooseFile(title(query)), response, callback);
 		}
 
-		if (Constants.SAVE_FILE.equals(command)) {
-			final String name = value(query, Constants.FILE_NAME_PARAMETER);
+		if (SAVE_FILE.equals(command)) {
+			final String name = value(query, NAME);
 
 			return answerWith(window.saveFile(title(query), name), response, callback);
 		}
@@ -66,7 +75,7 @@ class WindowHandler extends Handler.Abstract {
 	}
 
 	private static String title(final Fields query) {
-		return value(query, Constants.DIALOG_TITLE_PARAMETER);
+		return value(query, TITLE);
 	}
 
 	private static String value(final Fields query, final String name) {
@@ -81,14 +90,14 @@ class WindowHandler extends Handler.Abstract {
 		}
 
 		response.setStatus(HttpStatus.OK_200);
-		response.getHeaders().put(HttpHeader.CONTENT_TYPE, Constants.TEXT);
+		response.getHeaders().put(HttpHeader.CONTENT_TYPE, TEXT);
 		response.write(true, ByteBuffer.wrap(chosen.get().toString().getBytes(StandardCharsets.UTF_8)), callback);
 		return true;
 	}
 
 	private boolean perform(final String command) {
-		if (command.startsWith(Constants.RESIZE_START)) {
-			return beginResize(command.substring(Constants.RESIZE_START.length()));
+		if (command.startsWith(RESIZE_START)) {
+			return beginResize(command.substring(RESIZE_START.length()));
 		}
 
 		switch (command) {

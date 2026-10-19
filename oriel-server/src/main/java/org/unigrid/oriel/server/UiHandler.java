@@ -26,8 +26,11 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
 import org.unigrid.oriel.server.action.View;
+import org.unigrid.oriel.server.template.Templates;
 
 class UiHandler extends Handler.Abstract {
+	private static final String HTML = "text/html;charset=utf-8";
+
 	private final Templates templates;
 	private final Supplier<? extends View> index;
 
@@ -41,7 +44,7 @@ class UiHandler extends Handler.Abstract {
 		final ByteBuffer body = ByteBuffer.wrap(templates.render(index.get()).getBytes(StandardCharsets.UTF_8));
 
 		response.setStatus(HttpStatus.OK_200);
-		response.getHeaders().put(HttpHeader.CONTENT_TYPE, Constants.HTML);
+		response.getHeaders().put(HttpHeader.CONTENT_TYPE, HTML);
 		response.write(true, body, callback);
 		return true;
 	}

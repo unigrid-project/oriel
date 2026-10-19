@@ -20,7 +20,7 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
 import org.junit.jupiter.api.Test;
-import org.unigrid.oriel.server.WindowControl.Edge;
+import org.unigrid.oriel.server.window.WindowControl.Edge;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ResizeBoundsTest {

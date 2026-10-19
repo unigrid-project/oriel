@@ -14,7 +14,7 @@
     If not, see <http://www.gnu.org/licenses/> and <https://github.com/unigrid-project/oriel>.
  */
 
-package org.unigrid.oriel.window;
+package org.unigrid.oriel.window.launch;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -28,6 +28,15 @@ import java.util.Optional;
  * application's to decide.
  */
 public record LaunchOptions(WindowSystem windowSystem, List<String> remaining) {
+	/** Oriel's one argument on the command line; an application should not take one of this name for itself. */
+	static final String WINDOW_SYSTEM = "--window-system";
+
+	/* The window system given with its value in one argument, as in --window-system=wayland. */
+	private static final String WINDOW_SYSTEM_ASSIGNED = WINDOW_SYSTEM + "=";
+
+	/* After this argument everything is the application's, even what looks like Oriel's. */
+	private static final String END_OF_OPTIONS = "--";
+
 	public LaunchOptions {
 		remaining = List.copyOf(remaining);
 	}
@@ -46,7 +55,7 @@ public record LaunchOptions(WindowSystem windowSystem, List<String> remaining) {
 		while (arguments.hasNext()) {
 			final String argument = arguments.next();
 
-			if (Constants.END_OF_OPTIONS.equals(argument)) {
+			if (END_OF_OPTIONS.equals(argument)) {
 				remaining.add(argument);
 				arguments.forEachRemaining(remaining::add);
 			} else if (isWindowSystem(argument)) {
@@ -57,40 +66,38 @@ public record LaunchOptions(WindowSystem windowSystem, List<String> remaining) {
 		}
 
 		if (chosen.size() > 1) {
-			throw new IllegalArgumentException(Constants.WINDOW_SYSTEM_OPTION + " is given more than once");
+			throw new IllegalArgumentException(WINDOW_SYSTEM + " is given more than once");
 		}
 
 		return new LaunchOptions(chosen.stream().map(LaunchOptions::windowSystem).findFirst()
-			.orElse(Constants.DEFAULT_WINDOW_SYSTEM), remaining);
+			.orElse(WindowSystem.DEFAULT), remaining);
 	}
 
 	/** A line for the application's own help; empty where there is no window system to choose. */
 	public static Optional<String> help() {
-		return help(Constants.WINDOW_SYSTEM_CHOOSABLE);
+		return help(WindowSystem.CHOOSABLE);
 	}
 
 	static Optional<String> help(final boolean windowSystemChoosable) {
-		return Optional.of(Constants.WINDOW_SYSTEM_OPTION + "=<system>  What the page is drawn on in a Linux "
+		return Optional.of(WINDOW_SYSTEM + "=<system>  What the page is drawn on in a Linux "
 			+ "desktop session: " + WindowSystem.labels() + " (defaults to "
-			+ Constants.DEFAULT_WINDOW_SYSTEM.label() + ", which embeds it in the window on X11 and Wayland "
+			+ WindowSystem.DEFAULT.label() + ", which embeds it in the window on X11 and Wayland "
 			+ "desktops alike)."
 		).filter(line -> windowSystemChoosable);
 	}
 
 	private static boolean isWindowSystem(final String argument) {
-		return Constants.WINDOW_SYSTEM_OPTION.equals(argument)
-			|| argument.startsWith(Constants.WINDOW_SYSTEM_ASSIGNED);
+		return WINDOW_SYSTEM.equals(argument) || argument.startsWith(WINDOW_SYSTEM_ASSIGNED);
 	}
 
 	/* The value either follows an equals sign or is the next argument. */
 	private static String valueOf(final String argument, final Iterator<String> arguments) {
-		if (argument.startsWith(Constants.WINDOW_SYSTEM_ASSIGNED)) {
-			return argument.substring(Constants.WINDOW_SYSTEM_ASSIGNED.length());
+		if (argument.startsWith(WINDOW_SYSTEM_ASSIGNED)) {
+			return argument.substring(WINDOW_SYSTEM_ASSIGNED.length());
 		}
 
 		if (!arguments.hasNext()) {
-			throw new IllegalArgumentException(Constants.WINDOW_SYSTEM_OPTION + " needs a value: "
-				+ WindowSystem.labels());
+			throw new IllegalArgumentException(WINDOW_SYSTEM + " needs a value: " + WindowSystem.labels());
 		}
 
 		return arguments.next();
@@ -98,7 +105,7 @@ public record LaunchOptions(WindowSystem windowSystem, List<String> remaining) {
 
 	private static WindowSystem windowSystem(final String label) {
 		return WindowSystem.labelled(label).orElseThrow(() -> new IllegalArgumentException(
-			Constants.WINDOW_SYSTEM_OPTION + " does not know '" + label + "'; it takes " + WindowSystem.labels()
+			WINDOW_SYSTEM + " does not know '" + label + "'; it takes " + WindowSystem.labels()
 		));
 	}
 }

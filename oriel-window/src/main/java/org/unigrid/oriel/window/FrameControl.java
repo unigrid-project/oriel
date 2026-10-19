@@ -36,12 +36,15 @@ import java.util.function.Supplier;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
-import org.unigrid.oriel.server.WindowControl;
+import org.unigrid.oriel.server.window.WindowControl;
 
 class FrameControl implements WindowControl {
+	/* How often a drag or a resize follows the pointer, in milliseconds. */
+	private static final int FOLLOW_INTERVAL = 10;
+
 	private final JFrame frame;
 	private final Dimension minimum;
-	private final Timer follow = new Timer(Constants.FOLLOW_INTERVAL_MILLIS, event -> follow());
+	private final Timer follow = new Timer(FOLLOW_INTERVAL, event -> follow());
 	private final AtomicBoolean asking = new AtomicBoolean();
 
 	private Consumer<Point> tracking;

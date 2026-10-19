@@ -19,6 +19,7 @@ package org.unigrid.oriel.window;
 import java.awt.Dimension;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.unigrid.oriel.window.launch.WindowSystem;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /* Both are checked before any window is made, so the test needs no screen. */
