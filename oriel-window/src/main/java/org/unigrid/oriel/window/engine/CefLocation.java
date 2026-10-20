@@ -19,27 +19,30 @@ package org.unigrid.oriel.window.engine;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Objects;
+import org.unigrid.oriel.server.AppId;
 
 /**
- * Where the browser engine lives. An installed Janus carries it inside the application folder and names that
- * folder through a property; a development run has no such property and keeps the engine in the home folder.
+ * Where the browser engine lives. An installed application carries it inside its own folder and names that folder
+ * through a property named after it, such as {@code -Doriel-wallet.jcef=...}; a development run has no such property
+ * and keeps the engine in a folder of the application's own in the home folder, such as {@code ~/.oriel-wallet/jcef}.
+ * Each application keeps its own, so that one moving to another version of the engine leaves the others alone.
  */
 public class CefLocation {
-	/* Names the folder an installer put the engine in. */
-	private static final String PROPERTY = "janus.jcef";
-
-	private static final String HOME_FOLDER = ".janus/jcef";
+	private static final String PROPERTY_SUFFIX = ".jcef";
+	private static final String ENGINE_FOLDER = "jcef";
 
 	private final String bundled;
-	private final Path home;
+	private final Path downloaded;
 
-	public CefLocation() {
-		this(System.getProperty(PROPERTY), Path.of(System.getProperty("user.home")));
+	public CefLocation(final AppId id) {
+		this(Objects.requireNonNull(id, "The engine is looked for by the application it belongs to"),
+			System.getProperty(id.value() + PROPERTY_SUFFIX), Path.of(System.getProperty("user.home"))
+		);
 	}
 
-	CefLocation(final String bundled, final Path home) {
+	CefLocation(final AppId id, final String bundled, final Path home) {
 		this.bundled = bundled;
-		this.home = home;
+		this.downloaded = home.resolve("." + id.value()).resolve(ENGINE_FOLDER);
 	}
 
 	public boolean isBundled() {
@@ -47,6 +50,6 @@ public class CefLocation {
 	}
 
 	public File directory() {
-		return isBundled() ? new File(bundled) : home.resolve(HOME_FOLDER).toFile();
+		return isBundled() ? new File(bundled) : downloaded.toFile();
 	}
 }

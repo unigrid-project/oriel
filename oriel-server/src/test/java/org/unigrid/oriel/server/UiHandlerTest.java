@@ -30,7 +30,7 @@ public class UiHandlerTest extends ServedTest {
 
 	@Override
 	protected Handler routes() {
-		return Routes.create(templates(), token(), WindowControl.NONE, Actions.of(),
+		return Routes.create(id(), templates(), token(), WindowControl.NONE, Actions.of(),
 			() -> new Page("Visit " + visits.incrementAndGet())
 		);
 	}

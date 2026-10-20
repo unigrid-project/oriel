@@ -67,7 +67,7 @@ public class ActionHandlerTest extends ServedTest {
 
 	@Override
 	protected Handler routes() {
-		return Routes.create(templates(), token(), WindowControl.NONE, Actions.of(wallet), new Page("Janus"));
+		return Routes.create(id(), templates(), token(), WindowControl.NONE, Actions.of(wallet), new Page("Janus"));
 	}
 
 	@Example

@@ -24,6 +24,7 @@ import org.unigrid.oriel.server.template.Templates;
 
 /** Runs the interface on a real port for the length of one test. */
 public abstract class ServedTest {
+	private final AppId id = AppId.of("oriel-test");
 	private final SessionToken token = SessionToken.random();
 	private final Templates templates = new Templates(false);
 
@@ -31,7 +32,7 @@ public abstract class ServedTest {
 	private URI base;
 
 	protected Handler routes() {
-		return Routes.create(templates, token, new Page("Janus"));
+		return Routes.create(id, templates, token, new Page("Janus"));
 	}
 
 	@BeforeTry
@@ -43,6 +44,10 @@ public abstract class ServedTest {
 	@AfterTry
 	public void stop() throws Exception {
 		server.stop();
+	}
+
+	protected AppId id() {
+		return id;
 	}
 
 	protected SessionToken token() {

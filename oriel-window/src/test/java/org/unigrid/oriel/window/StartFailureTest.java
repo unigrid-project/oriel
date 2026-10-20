@@ -20,11 +20,13 @@ import java.awt.Dimension;
 import java.io.File;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.unigrid.oriel.server.AppId;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class StartFailureTest {
+	private static final AppId ID = AppId.of("ledger");
 	private static final File ENGINE = new File("/opt/unigrid/lib/app/jcef");
-	private static final Application LEDGER = new Application("Ledger", List.of(), new Dimension(1240, 800),
+	private static final Application LEDGER = new Application(ID, "Ledger", List.of(), new Dimension(1240, 800),
 		new Dimension(900, 640)
 	);
 

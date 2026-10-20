@@ -16,12 +16,13 @@
 
 /* A failed action leaves the page as it was, which makes a click that failed look like one that was ignored.
    The reason is written to the log, so the person is only told that there is one. Only the application knows
-   where its log is, so the page says it in data-failure-message on the body. */
+   where its log is, so the page says it in data-failure-message on the body. The page marks where the notice
+   goes with data-failure-host, and styles it through [data-failure]. Of several marks the last one wins, so a
+   mark inside another, such as on a card inside the main area, is the one used; with none the body is used. */
 document.addEventListener("htmx:responseError", () => {
-	const host = document.querySelector("main > .card") ?? document.querySelector("main");
+	const host = [...document.querySelectorAll("[data-failure-host]")].at(-1) ?? document.body;
 	const notice = host.querySelector("[data-failure]") ?? host.appendChild(document.createElement("p"));
 
-	notice.className = "step__error";
 	notice.dataset.failure = "";
 	notice.setAttribute("role", "alert");
 	notice.textContent = document.body.dataset.failureMessage ?? "That did not work. The reason is in the log.";

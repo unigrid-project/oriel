@@ -38,17 +38,19 @@ public final class Routes {
 	private Routes() {
 	}
 
-	public static Handler create(final Templates templates, final SessionToken token, final View index) {
-		return create(templates, token, WindowControl.NONE, Actions.of(), index);
+	public static Handler create(final AppId id, final Templates templates, final SessionToken token,
+		final View index) {
+
+		return create(id, templates, token, WindowControl.NONE, Actions.of(), index);
 	}
 
-	public static Handler create(final Templates templates, final SessionToken token,
+	public static Handler create(final AppId id, final Templates templates, final SessionToken token,
 		final WindowControl window, final Actions actions, final View index) {
 
-		return create(templates, token, window, actions, () -> index);
+		return create(id, templates, token, window, actions, () -> index);
 	}
 
-	public static Handler create(final Templates templates, final SessionToken token,
+	public static Handler create(final AppId id, final Templates templates, final SessionToken token,
 		final WindowControl window, final Actions actions, final Supplier<? extends View> index) {
 
 		/* Anything the file handlers do not recognise falls through to the pages,
@@ -59,7 +61,7 @@ public final class Routes {
 			new ContextHandler(new WindowHandler(window), WINDOW_PATH),
 			new ContextHandler(new ActionHandler(actions, templates), ACTION_PATH),
 			new UiHandler(templates, index)
-		), token);
+		), id, token);
 	}
 
 	/* The scripts the pages run sit under a root of their own, because the classpath answers with the first

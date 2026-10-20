@@ -20,18 +20,21 @@ import java.awt.Dimension;
 import java.awt.Image;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.unigrid.oriel.server.AppId;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ApplicationTest {
+	private static final AppId ID = AppId.of("ledger");
 	private static final Dimension OPENING = new Dimension(1240, 800);
 	private static final Dimension MINIMUM = new Dimension(900, 640);
 
 	@Test
 	public void shouldTakeWhatTheApplicationSaysAboutItself() {
 		final List<Image> icons = WindowIcon.images(WindowIconTest.class, WindowIconTest.ICONS);
-		final Application application = new Application("Ledger", icons, OPENING, MINIMUM);
+		final Application application = new Application(ID, "Ledger", icons, OPENING, MINIMUM);
 
+		assertEquals(ID, application.id());
 		assertEquals("Ledger", application.name());
 		assertEquals(icons, application.icons());
 		assertEquals(OPENING, application.size());
@@ -39,28 +42,33 @@ public class ApplicationTest {
 	}
 
 	@Test
+	public void shouldRefuseAnApplicationWithoutAnId() {
+		assertThrows(NullPointerException.class, () -> new Application(null, "Ledger", List.of(), OPENING, MINIMUM));
+	}
+
+	@Test
 	public void shouldRefuseAnApplicationWithoutAName() {
-		assertThrows(IllegalArgumentException.class, () -> new Application(" ", List.of(), OPENING, MINIMUM));
-		assertThrows(IllegalArgumentException.class, () -> new Application(null, List.of(), OPENING, MINIMUM));
+		assertThrows(IllegalArgumentException.class, () -> new Application(ID, " ", List.of(), OPENING, MINIMUM));
+		assertThrows(IllegalArgumentException.class, () -> new Application(ID, null, List.of(), OPENING, MINIMUM));
 	}
 
 	@Test
 	public void shouldAssumeNothingTheApplicationLeavesOut() {
-		assertThrows(NullPointerException.class, () -> new Application("Ledger", null, OPENING, MINIMUM));
-		assertThrows(NullPointerException.class, () -> new Application("Ledger", List.of(), null, MINIMUM));
-		assertThrows(NullPointerException.class, () -> new Application("Ledger", List.of(), OPENING, null));
+		assertThrows(NullPointerException.class, () -> new Application(ID, "Ledger", null, OPENING, MINIMUM));
+		assertThrows(NullPointerException.class, () -> new Application(ID, "Ledger", List.of(), null, MINIMUM));
+		assertThrows(NullPointerException.class, () -> new Application(ID, "Ledger", List.of(), OPENING, null));
 	}
 
 	@Test
 	public void shouldRefuseToOpenSmallerThanItsMinimum() {
 		assertThrows(IllegalArgumentException.class,
-			() -> new Application("Ledger", List.of(), new Dimension(800, 600), MINIMUM));
+			() -> new Application(ID, "Ledger", List.of(), new Dimension(800, 600), MINIMUM));
 	}
 
 	@Test
 	public void shouldKeepItsSizesWhateverHappensToTheOnesHandedInOrOut() {
 		final Dimension opening = new Dimension(OPENING);
-		final Application application = new Application("Ledger", List.of(), opening, MINIMUM);
+		final Application application = new Application(ID, "Ledger", List.of(), opening, MINIMUM);
 
 		opening.width = 1;
 		application.size().width = 1;

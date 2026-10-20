@@ -29,11 +29,20 @@ import org.eclipse.jetty.util.Callback;
  * reachable by every other program on the machine, and this one can move money.
  */
 class Guard extends Handler.Wrapper {
+	private static final String COOKIE_SUFFIX = "-session";
+
+	private final String cookieName;
 	private final SessionToken token;
 
-	Guard(final Handler handler, final SessionToken token) {
+	Guard(final Handler handler, final AppId id, final SessionToken token) {
 		super(handler);
+		this.cookieName = cookie(id);
 		this.token = token;
+	}
+
+	/* Named after the application, so that two of them open in one browser do not overwrite each other's. */
+	static String cookie(final AppId id) {
+		return id.value() + COOKIE_SUFFIX;
 	}
 
 	@Override
@@ -60,7 +69,7 @@ class Guard extends Handler.Wrapper {
 
 	private boolean adopt(final Request request, final Response response, final Callback callback) {
 		response.getHeaders().put(HttpHeader.SET_COOKIE,
-			SessionToken.COOKIE + "=" + token.value() + "; Path=/; HttpOnly; SameSite=Strict"
+			cookieName + "=" + token.value() + "; Path=/; HttpOnly; SameSite=Strict"
 		);
 
 		Response.sendRedirect(request, response, callback, Request.getPathInContext(request));
@@ -80,7 +89,7 @@ class Guard extends Handler.Wrapper {
 	 */
 	private boolean holdsTheToken(final Request request) {
 		for (final HttpCookie cookie : Request.getCookies(request)) {
-			if (SessionToken.COOKIE.equals(cookie.getName()) && token.matches(cookie.getValue())) {
+			if (cookieName.equals(cookie.getName()) && token.matches(cookie.getValue())) {
 				return true;
 			}
 		}
