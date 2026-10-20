@@ -19,24 +19,27 @@ package org.unigrid.oriel.window.engine;
 import java.io.File;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
+import org.unigrid.oriel.server.AppId;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class CefLocationTest {
+	private static final AppId ID = AppId.of("ledger");
 	private static final Path HOME = Path.of("/home/someone");
 
 	@Test
 	public void shouldKeepTheEngineInTheHomeFolderWhenNoneIsBundled() {
-		final CefLocation location = new CefLocation(null, HOME);
+		final CefLocation location = new CefLocation(ID, null, HOME);
 
 		assertFalse(location.isBundled());
-		assertEquals(HOME.resolve(".janus/jcef").toFile(), location.directory());
+		assertEquals(HOME.resolve(".ledger/jcef").toFile(), location.directory());
 	}
 
 	@Test
 	public void shouldUseTheFolderTheLauncherNames() {
-		final CefLocation location = new CefLocation("/opt/unigrid/lib/app/jcef", HOME);
+		final CefLocation location = new CefLocation(ID, "/opt/unigrid/lib/app/jcef", HOME);
 
 		assertTrue(location.isBundled());
 		assertEquals(new File("/opt/unigrid/lib/app/jcef"), location.directory());
@@ -45,16 +48,16 @@ public class CefLocationTest {
 	@Test
 	public void shouldIgnoreAnEmptyOrBlankProperty() {
 		for (final String value : new String[] {"", "  "}) {
-			final CefLocation location = new CefLocation(value, HOME);
+			final CefLocation location = new CefLocation(ID, value, HOME);
 
 			assertFalse(location.isBundled());
-			assertEquals(HOME.resolve(".janus/jcef").toFile(), location.directory());
+			assertEquals(HOME.resolve(".ledger/jcef").toFile(), location.directory());
 		}
 	}
 
 	@Test
 	public void shouldTrustTheBundledFolderEvenWhenItIsMissing() {
-		final CefLocation location = new CefLocation("/nowhere/jcef", HOME);
+		final CefLocation location = new CefLocation(ID, "/nowhere/jcef", HOME);
 
 		assertTrue(location.isBundled());
 		assertFalse(location.directory().exists());
@@ -63,8 +66,30 @@ public class CefLocationTest {
 	@Test
 	public void shouldPreferTheBundledEngineOverOneInTheHomeFolder() {
 		final Path home = Path.of(System.getProperty("java.io.tmpdir"));
-		final CefLocation location = new CefLocation("/opt/unigrid/lib/app/jcef", home);
+		final CefLocation location = new CefLocation(ID, "/opt/unigrid/lib/app/jcef", home);
 
 		assertEquals(new File("/opt/unigrid/lib/app/jcef"), location.directory());
+	}
+
+	@Test
+	public void shouldKeepEachApplicationsEngineApart() {
+		final File ledger = new CefLocation(ID, null, HOME).directory();
+		final File wallet = new CefLocation(AppId.of("oriel-wallet"), null, HOME).directory();
+
+		assertEquals(HOME.resolve(".oriel-wallet/jcef").toFile(), wallet);
+		assertNotEquals(ledger, wallet);
+	}
+
+	@Test
+	public void shouldReadTheFolderFromThePropertyNamedAfterTheApplication() {
+		final AppId id = AppId.of("oriel-location-test");
+
+		System.setProperty("oriel-location-test.jcef", "/opt/ledger/lib/app/jcef");
+
+		try {
+			assertEquals(new File("/opt/ledger/lib/app/jcef"), new CefLocation(id).directory());
+		} finally {
+			System.clearProperty("oriel-location-test.jcef");
+		}
 	}
 }

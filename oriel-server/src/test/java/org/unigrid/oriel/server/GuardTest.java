@@ -64,7 +64,7 @@ public class GuardTest extends ServedTest {
 		assertEquals(302, response.statusCode());
 		assertEquals("/wallet", location.getPath());
 		assertNull(location.getQuery(), location.toString());
-		assertTrue(cookie.startsWith(SessionToken.COOKIE + "=" + token().value() + ";"), cookie);
+		assertTrue(cookie.startsWith(Guard.cookie(id()) + "=" + token().value() + ";"), cookie);
 		assertTrue(cookie.contains("HttpOnly"), cookie);
 		assertTrue(cookie.contains("SameSite=Strict"), cookie);
 	}
@@ -97,7 +97,7 @@ public class GuardTest extends ServedTest {
 
 	@Example
 	public void shouldFindTheSessionCookieWhereverItIsAmongOthers() throws Exception {
-		final String session = SessionToken.COOKIE + "=" + token().value();
+		final String session = Guard.cookie(id()) + "=" + token().value();
 
 		assertEquals(200, sending(session + "; theme=dark").statusCode());
 		assertEquals(200, sending("theme=dark; " + session).statusCode());
@@ -112,8 +112,8 @@ public class GuardTest extends ServedTest {
 	/* Another page on this address can set a session cookie of its own, which must not lock the real one out. */
 	@Example
 	public void shouldAdmitTheTokenBesideAnotherSessionCookie() throws Exception {
-		final String session = SessionToken.COOKIE + "=" + token().value();
-		final String stranger = SessionToken.COOKIE + "=not-the-token";
+		final String session = Guard.cookie(id()) + "=" + token().value();
+		final String stranger = Guard.cookie(id()) + "=not-the-token";
 
 		assertEquals(200, sending(stranger + "; " + session).statusCode());
 		assertEquals(200, sending(session + "; " + stranger).statusCode());
@@ -121,9 +121,9 @@ public class GuardTest extends ServedTest {
 
 	@Example
 	public void shouldRefuseSessionCookiesThatAllHoldTheWrongToken() throws Exception {
-		final String stranger = SessionToken.COOKIE + "=not-the-token";
+		final String stranger = Guard.cookie(id()) + "=not-the-token";
 
-		final String other = SessionToken.COOKIE + "=nor-this";
+		final String other = Guard.cookie(id()) + "=nor-this";
 
 		assertEquals(403, sending(stranger + "; " + other + "; theme=dark").statusCode());
 	}

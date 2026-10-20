@@ -30,7 +30,7 @@ public class WindowHandlerTest extends ServedTest {
 
 	@Override
 	protected Handler routes() {
-		return Routes.create(templates(), token(), window, Actions.of(), new Page("Janus"));
+		return Routes.create(id(), templates(), token(), window, Actions.of(), new Page("Janus"));
 	}
 
 	@Example

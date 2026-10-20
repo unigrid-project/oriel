@@ -26,9 +26,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * else that happens to be running on the machine and can reach a loopback port.
  */
 public final class SessionToken {
-	/** The cookie the token is kept in once the first page has loaded. */
-	static final String COOKIE = "janus-session";
-
 	/** The query parameter the first page load carries the token in. */
 	public static final String PARAMETER = "t";
 

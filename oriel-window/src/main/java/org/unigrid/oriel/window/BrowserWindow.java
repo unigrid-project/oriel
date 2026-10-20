@@ -45,7 +45,7 @@ import org.unigrid.oriel.window.launch.WindowSystem;
 
 public class BrowserWindow {
 	/** Opens the engine to remote debugging on the port it names; nothing listens unless it is set. */
-	public static final String DEBUGGING_PORT = "janus.remote-debugging-port";
+	public static final String DEBUGGING_PORT = "oriel.remote-debugging-port";
 
 	private static final Logger LOG = LoggerFactory.getLogger(BrowserWindow.class);
 	private static final Duration SHUTDOWN_GRACE = Duration.ofSeconds(10);
@@ -110,7 +110,7 @@ public class BrowserWindow {
 
 	public void open(final URI uri) throws Exception {
 		final CefAppBuilder builder = new CefAppBuilder();
-		final CefLocation location = new CefLocation();
+		final CefLocation location = new CefLocation(application.id());
 
 		builder.setInstallDir(location.directory());
 

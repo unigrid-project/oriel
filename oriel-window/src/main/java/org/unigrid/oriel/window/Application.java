@@ -20,15 +20,19 @@ import java.awt.Dimension;
 import java.awt.Image;
 import java.util.List;
 import java.util.Objects;
+import org.unigrid.oriel.server.AppId;
 
 /**
- * The application the window belongs to: the name it goes by in the title bar and when it cannot start, the icons
- * the desktop shows for it, and the size it opens at and cannot be made smaller than. Oriel assumes none of it; the
- * application gives all of it. An empty list of icons leaves the desktop to show its own.
+ * The application the window belongs to: the id its browser engine's property and folder are named after, the name
+ * it goes by in the title bar and when it cannot start, the icons the desktop shows for it, and the size it opens
+ * at and cannot be made smaller than. Oriel assumes none of it; the application gives all of it. An empty list of
+ * icons leaves the desktop to show its own.
  */
-public record Application(String name, List<Image> icons, Dimension size, Dimension minimumSize) {
+public record Application(AppId id, String name, List<Image> icons, Dimension size, Dimension minimumSize) {
 	/* Dimension can be changed by whoever holds it, so the record keeps copies of its own. */
 	public Application {
+		Objects.requireNonNull(id, "An application gives the id Oriel names things after for it");
+
 		if (name == null || name.isBlank()) {
 			throw new IllegalArgumentException("An application needs a name");
 		}
