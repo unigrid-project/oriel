@@ -70,7 +70,7 @@ public interface WindowControl {
 
 	/**
 	 * Asks the person for a file with the host's own dialog and answers with where it is. A page
-	 * can only ever be handed a file's contents, never its place on disk, and a wallet is too
+	 * can only ever be handed a file's contents, never its place on disk, and a file can be too
 	 * large to copy through a request. Empty when the dialog was dismissed.
 	 */
 	default Optional<Path> chooseFile(final String title) {

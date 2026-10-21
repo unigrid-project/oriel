@@ -27,7 +27,7 @@ public class UiServerTest extends ServedTest {
 		final HttpResponse<String> response = admitted().get("/");
 
 		assertEquals(200, response.statusCode());
-		assertTrue(response.body().contains("<h1>Janus</h1>"), response.body());
+		assertTrue(response.body().contains("<h1>Ledger</h1>"), response.body());
 	}
 
 	@Example

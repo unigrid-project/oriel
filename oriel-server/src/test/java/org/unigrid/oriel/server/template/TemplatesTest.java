@@ -26,7 +26,7 @@ public class TemplatesTest {
 
 	@Example
 	public void shouldResolveTemplateFromClasspath() {
-		final String html = templates.render(new Page("Janus"));
+		final String html = templates.render(new Page("Ledger"));
 
 		assertTrue(html.contains("<!DOCTYPE html>"), html);
 	}

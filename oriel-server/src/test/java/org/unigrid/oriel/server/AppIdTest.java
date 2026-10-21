@@ -23,13 +23,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class AppIdTest {
 	@Example
 	public void shouldTakeLowercaseLettersDigitsAndHyphens() {
-		assertEquals("oriel-wallet2", AppId.of("oriel-wallet2").value());
+		assertEquals("ledger-book2", AppId.of("ledger-book2").value());
 	}
 
 	@Example
 	public void shouldRefuseWhatCannotBeAFileName() {
-		for (final String value : new String[] {"", "Janus", "oriel wallet", "2wallet", "-wallet", "oriel.wallet",
-			"../wallet", "oriel_wallet"}) {
+		for (final String value : new String[] {"", "Ledger", "ledger book", "2ledger", "-ledger", "ledger.book",
+			"../ledger", "ledger_book"}) {
 
 			assertThrows(IllegalArgumentException.class, () -> AppId.of(value), value);
 		}
@@ -42,6 +42,6 @@ public class AppIdTest {
 
 	@Example
 	public void shouldNameTheSessionCookieAfterTheApplication() {
-		assertEquals("oriel-wallet-session", Guard.cookie(AppId.of("oriel-wallet")));
+		assertEquals("ledger-book-session", Guard.cookie(AppId.of("ledger-book")));
 	}
 }

@@ -74,10 +74,10 @@ public class CefLocationTest {
 	@Test
 	public void shouldKeepEachApplicationsEngineApart() {
 		final File ledger = new CefLocation(ID, null, HOME).directory();
-		final File wallet = new CefLocation(AppId.of("oriel-wallet"), null, HOME).directory();
+		final File notebook = new CefLocation(AppId.of("notebook"), null, HOME).directory();
 
-		assertEquals(HOME.resolve(".oriel-wallet/jcef").toFile(), wallet);
-		assertNotEquals(ledger, wallet);
+		assertEquals(HOME.resolve(".notebook/jcef").toFile(), notebook);
+		assertNotEquals(ledger, notebook);
 	}
 
 	@Test

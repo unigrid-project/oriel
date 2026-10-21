@@ -51,7 +51,7 @@ public class RoutesTest extends ServedTest {
 	public void shouldFallThroughToThePageForUnknownPaths() throws Exception {
 		final Client client = admitted();
 
-		assertTrue(client.get("/").body().contains("<h1>Janus</h1>"));
-		assertTrue(client.get("/wallet").body().contains("<h1>Janus</h1>"));
+		assertTrue(client.get("/").body().contains("<h1>Ledger</h1>"));
+		assertTrue(client.get("/ledger").body().contains("<h1>Ledger</h1>"));
 	}
 }

@@ -30,7 +30,7 @@ public class WindowHandlerTest extends ServedTest {
 
 	@Override
 	protected Handler routes() {
-		return Routes.create(id(), templates(), token(), window, Actions.of(), new Page("Janus"));
+		return Routes.create(id(), templates(), token(), window, Actions.of(), new Page("Ledger"));
 	}
 
 	@Example
@@ -62,20 +62,20 @@ public class WindowHandlerTest extends ServedTest {
 
 	@Example
 	public void shouldAnswerWithTheFileTheHostChose() throws Exception {
-		final Path wallet = Path.of("/mnt/backup/wallet.dat");
+		final Path ledger = Path.of("/mnt/backup/ledger.csv");
 
-		window.picking(wallet);
+		window.picking(ledger);
 
-		final HttpResponse<String> response = admitted().post("/window/choose-file?title=Pick+a+wallet");
+		final HttpResponse<String> response = admitted().post("/window/choose-file?title=Pick+a+ledger");
 
 		assertEquals(200, response.statusCode());
-		assertEquals(wallet.toString(), response.body());
-		assertEquals(List.of("choose-file:Pick a wallet"), window.commands());
+		assertEquals(ledger.toString(), response.body());
+		assertEquals(List.of("choose-file:Pick a ledger"), window.commands());
 	}
 
 	@Example
 	public void shouldAnswerWithNothingWhenTheDialogWasDismissed() throws Exception {
-		final HttpResponse<String> response = admitted().post("/window/choose-file?title=Pick+a+wallet");
+		final HttpResponse<String> response = admitted().post("/window/choose-file?title=Pick+a+ledger");
 
 		assertEquals(204, response.statusCode());
 		assertEquals("", response.body());

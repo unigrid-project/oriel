@@ -26,7 +26,7 @@ import org.eclipse.jetty.util.Callback;
 
 /**
  * Refuses anything that cannot prove it is the interface this process opened. A loopback port is
- * reachable by every other program on the machine, and this one can move money.
+ * reachable by every other program on the machine, and the interface acts for the person using it.
  */
 class Guard extends Handler.Wrapper {
 	private static final String COOKIE_SUFFIX = "-session";
