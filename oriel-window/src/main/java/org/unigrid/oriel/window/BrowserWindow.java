@@ -124,7 +124,7 @@ public class BrowserWindow {
 			builder.addJcefArgs(windowSystem.engineSwitch());
 		}
 
-		/* Lets the installer tests work the installed wallet's window; nothing listens unless a port is named. */
+		/* Lets tests drive an installed application's window; nothing listens unless a port is named. */
 		final Integer debuggingPort = Integer.getInteger(DEBUGGING_PORT);
 
 		if (debuggingPort != null) {
@@ -132,7 +132,7 @@ public class BrowserWindow {
 		}
 
 		/* Chromium keeps running after the last window closes, so the process has to be
-		   torn down explicitly or the wallet lingers with no way to reach it. */
+		   torn down explicitly or the application lingers with no way to reach it. */
 		builder.setAppHandler(new MavenCefAppHandlerAdapter() {
 			@Override
 			public void stateHasChanged(final CefApp.CefAppState state) {
@@ -183,7 +183,7 @@ public class BrowserWindow {
 	   the browser, and with it the process, lives on. The frame is hidden rather than
 	   disposed because the shutdown completes on the event thread, which AWT retires once
 	   the last window is gone. On macOS the engine now and then never finishes shutting
-	   down, which would leave Janus running with no window, so it gets a deadline. */
+	   down, which would leave the application running with no window, so it gets a deadline. */
 	private WindowAdapter shutDownOnClose(final CefBrowser browser) {
 		return new WindowAdapter() {
 			@Override

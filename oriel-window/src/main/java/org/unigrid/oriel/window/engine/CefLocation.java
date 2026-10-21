@@ -23,8 +23,8 @@ import org.unigrid.oriel.server.AppId;
 
 /**
  * Where the browser engine lives. An installed application carries it inside its own folder and names that folder
- * through a property named after it, such as {@code -Doriel-wallet.jcef=...}; a development run has no such property
- * and keeps the engine in a folder of the application's own in the home folder, such as {@code ~/.oriel-wallet/jcef}.
+ * through a property named after it, such as {@code -Dledger-book.jcef=...}; a development run has no such property
+ * and keeps the engine in a folder of the application's own in the home folder, such as {@code ~/.ledger-book/jcef}.
  * Each application keeps its own, so that one moving to another version of the engine leaves the others alone.
  */
 public class CefLocation {

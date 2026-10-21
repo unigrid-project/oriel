@@ -2,7 +2,7 @@ name: Oriel release
 
 # Started by pushing a tag such as v0.1.0, or by hand with a version. It builds and tests that commit and
 # leaves a draft release with the jars, which nobody sees until it is published from the Releases page.
-# Publishing the draft is what puts the version into GitHub Packages, where Janus fetches it from.
+# Publishing the draft is what puts the version into GitHub Packages, where applications fetch it from.
 on:
   push:
     tags:

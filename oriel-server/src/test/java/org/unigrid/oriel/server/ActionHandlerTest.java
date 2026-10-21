@@ -34,29 +34,29 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ActionHandlerTest extends ServedTest {
-	private final Wallet wallet = new Wallet();
+	private final Ledger ledger = new Ledger();
 
-	public class Wallet {
+	public class Ledger {
 		private final List<String> unlocked = new ArrayList<>();
 
-		@Action("lock-wallet")
-		public void onClickLockWallet() {
+		@Action("lock-ledger")
+		public void onClickLockLedger() {
 			unlocked.clear();
 		}
 
-		@Action("unlock-wallet")
-		public Status onClickUnlockWallet(final Form form) {
+		@Action("unlock-ledger")
+		public Status onClickUnlockLedger(final Form form) {
 			unlocked.add(form.get("passphrase"));
 			return new Status(form.get("passphrase"));
 		}
 
-		@Action("break-wallet")
-		public void onClickBreakWallet() {
-			throw new IllegalStateException("Hedgehog said no");
+		@Action("break-ledger")
+		public void onClickBreakLedger() {
+			throw new IllegalStateException("The ledger file is damaged");
 		}
 
-		@Action("misreport-wallet")
-		public String onClickMisreportWallet() {
+		@Action("misreport-ledger")
+		public String onClickMisreportLedger() {
 			return "not a view";
 		}
 
@@ -67,29 +67,29 @@ public class ActionHandlerTest extends ServedTest {
 
 	@Override
 	protected Handler routes() {
-		return Routes.create(id(), templates(), token(), WindowControl.NONE, Actions.of(wallet), new Page("Janus"));
+		return Routes.create(id(), templates(), token(), WindowControl.NONE, Actions.of(ledger), new Page("Ledger"));
 	}
 
 	@Example
 	public void shouldCallTheAnnotatedMethod() throws Exception {
-		assertEquals(204, admitted().post("/action/lock-wallet").statusCode());
+		assertEquals(204, admitted().post("/action/lock-ledger").statusCode());
 	}
 
 	@Example
 	public void shouldHandTheFormToTheMethod() throws Exception {
 		final HttpResponse<String> response = admitted()
-			.submit("/action/unlock-wallet", "passphrase=open+sesame%21");
+			.submit("/action/unlock-ledger", "passphrase=open+sesame%21");
 
 		assertEquals(200, response.statusCode());
-		assertEquals(List.of("open sesame!"), wallet.unlocked());
+		assertEquals(List.of("open sesame!"), ledger.unlocked());
 	}
 
 	@Example
 	public void shouldRenderTheViewThatWasReturned() throws Exception {
 		final HttpResponse<String> response = admitted()
-			.submit("/action/unlock-wallet", "passphrase=x");
+			.submit("/action/unlock-ledger", "passphrase=x");
 
-		assertTrue(response.body().contains("Janus is unlocked"), response.body());
+		assertTrue(response.body().contains("Ledger is unlocked"), response.body());
 		assertTrue(!response.body().contains("<!DOCTYPE html>"),
 			"a fragment should be returned rather than the whole page: " + response.body()
 		);
@@ -97,17 +97,17 @@ public class ActionHandlerTest extends ServedTest {
 
 	@Example
 	public void shouldRefuseAnActionItDoesNotHave() throws Exception {
-		assertEquals(404, admitted().post("/action/drain-wallet").statusCode());
+		assertEquals(404, admitted().post("/action/shred-ledger").statusCode());
 	}
 
 	@Example
 	public void shouldNotActForAnUnknownCaller() throws Exception {
-		assertEquals(403, anonymous().post("/action/lock-wallet").statusCode());
+		assertEquals(403, anonymous().post("/action/lock-ledger").statusCode());
 	}
 
 	@Example
 	public void shouldReportAFailedActionRatherThanPretendItWorked() throws Exception {
-		assertEquals(500, admitted().post("/action/break-wallet").statusCode());
+		assertEquals(500, admitted().post("/action/break-ledger").statusCode());
 	}
 
 	@Example
@@ -119,19 +119,19 @@ public class ActionHandlerTest extends ServedTest {
 		logger.addAppender(logged);
 
 		try {
-			admitted().post("/action/break-wallet");
+			admitted().post("/action/break-ledger");
 		} finally {
 			logger.detachAppender(logged);
 		}
 
 		assertEquals(1, logged.list.size());
 		assertEquals(Level.ERROR, logged.list.get(0).getLevel());
-		assertTrue(logged.list.get(0).getFormattedMessage().contains("break-wallet"));
-		assertEquals("Hedgehog said no", logged.list.get(0).getThrowableProxy().getMessage());
+		assertTrue(logged.list.get(0).getFormattedMessage().contains("break-ledger"));
+		assertEquals("The ledger file is damaged", logged.list.get(0).getThrowableProxy().getMessage());
 	}
 
 	@Example
 	public void shouldReportAnActionThatAnswersWithSomethingOtherThanAView() throws Exception {
-		assertEquals(500, admitted().post("/action/misreport-wallet").statusCode());
+		assertEquals(500, admitted().post("/action/misreport-ledger").statusCode());
 	}
 }

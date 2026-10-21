@@ -47,7 +47,7 @@ public class GuardTest extends ServedTest {
 			+ token().value());
 
 		assertEquals(200, bootstrap.statusCode(), "the redirect should have been followed to the page");
-		assertTrue(bootstrap.body().contains("<h1>Janus</h1>"), bootstrap.body());
+		assertTrue(bootstrap.body().contains("<h1>Ledger</h1>"), bootstrap.body());
 		assertEquals(200, client.get("/").statusCode(), "the cookie should carry the next request");
 	}
 
@@ -56,13 +56,13 @@ public class GuardTest extends ServedTest {
 	public void shouldRedirectToTheSamePathWithTheTokenInACookieInstead() throws Exception {
 		final HttpClient http = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NEVER).build();
 		final HttpResponse<String> response = http.send(HttpRequest.newBuilder(
-			base().resolve("/wallet?" + SessionToken.PARAMETER + "=" + token().value())
+			base().resolve("/ledger?" + SessionToken.PARAMETER + "=" + token().value())
 		).build(), HttpResponse.BodyHandlers.ofString());
 		final URI location = URI.create(response.headers().firstValue("Location").orElse(""));
 		final String cookie = response.headers().firstValue("Set-Cookie").orElse("");
 
 		assertEquals(302, response.statusCode());
-		assertEquals("/wallet", location.getPath());
+		assertEquals("/ledger", location.getPath());
 		assertNull(location.getQuery(), location.toString());
 		assertTrue(cookie.startsWith(Guard.cookie(id()) + "=" + token().value() + ";"), cookie);
 		assertTrue(cookie.contains("HttpOnly"), cookie);

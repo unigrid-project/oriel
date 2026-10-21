@@ -33,7 +33,7 @@ public class ActionsTest {
 		}
 	}
 
-	public static class Wallet {
+	public static class Ledger {
 		@Action("lock")
 		public void onClickLock() {
 		}
@@ -54,7 +54,7 @@ public class ActionsTest {
 
 	@Example
 	public void shouldBindEachActionOnce() {
-		final Actions actions = Actions.of(new Wallet());
+		final Actions actions = Actions.of(new Ledger());
 
 		assertTrue(actions.knows("lock"));
 		assertTrue(actions.knows("unlock"));

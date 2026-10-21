@@ -45,7 +45,7 @@ public class UiHandlerTest extends ServedTest {
 		assertTrue(page.body().contains("<!DOCTYPE html>"), page.body());
 	}
 
-	/* What the page opens on can change while Janus runs, such as once a wallet has been chosen. */
+	/* What the page opens on can change while the application runs, such as once a ledger has been opened. */
 	@Example
 	public void shouldWorkOutThePageAgainForEveryRequest() throws Exception {
 		final Client client = admitted();

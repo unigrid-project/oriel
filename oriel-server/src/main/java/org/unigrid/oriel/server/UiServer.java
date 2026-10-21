@@ -22,7 +22,7 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 
 public class UiServer {
-	/* The wallet holds keys, so the interface is never reachable from off the machine.
+	/* The interface acts for the person using it, so it is never reachable from off the machine.
 	   Port zero keeps it off a predictable address that another local process could
 	   guess ahead of time. */
 	private static final String LOOPBACK = "127.0.0.1";

@@ -23,5 +23,14 @@ jobs:
         distribution: 'temurin'
         cache: maven
 
+    # Oriel is a library for any application, so it names none, not even the one it was taken from. The pattern
+    # is written so that this file does not match it.
+    - name: Check that Oriel names no other application
+      run: |
+        if git grep -n -I -i 'j[a]nus'; then
+          echo "The lines above name the application Oriel was taken from" >&2
+          exit 1
+        fi
+
     - name: Build main
       run: ./mvnw -B install

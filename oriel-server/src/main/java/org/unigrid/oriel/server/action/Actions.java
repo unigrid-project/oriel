@@ -113,7 +113,7 @@ public final class Actions {
 		} catch (IllegalAccessException e) {
 			throw new ActionFailed(name, e);
 		} catch (InvocationTargetException e) {
-			/* The method itself failed. A wallet must not answer as though nothing went
+			/* The method itself failed. An application must not answer as though nothing went
 			   wrong, so the cause travels up rather than being swallowed here. */
 			throw new ActionFailed(name, e.getCause());
 		}
