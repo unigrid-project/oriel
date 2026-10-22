@@ -21,11 +21,9 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.unigrid.oriel.server.AppId;
 import org.unigrid.oriel.window.launch.WindowSystem;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/* All of it is decided before any window is made, so the test needs no screen. */
+/* Both are checked before any window is made, so the test needs no screen. */
 public class BrowserWindowTest {
 	private static final AppId ID = AppId.of("ledger");
 	private static final Application LEDGER = new Application(ID, "Ledger", List.of(), new Dimension(1240, 800),
@@ -41,23 +39,5 @@ public class BrowserWindowTest {
 	@Test
 	public void shouldRefuseToOpenWithoutAWindowSystem() {
 		assertThrows(NullPointerException.class, () -> new BrowserWindow(LEDGER, null));
-	}
-
-	@Test
-	public void shouldDrawThroughOpenGlOnAMacThatLeftTheChoiceOpen() {
-		assertTrue(BrowserWindow.avoidsMetal("Mac OS X", null));
-	}
-
-	@Test
-	public void shouldKeepTheChoiceAnApplicationMadeItself() {
-		assertFalse(BrowserWindow.avoidsMetal("Mac OS X", "true"));
-		assertFalse(BrowserWindow.avoidsMetal("Mac OS X", "false"));
-	}
-
-	@Test
-	public void shouldLeaveOtherSystemsAlone() {
-		assertFalse(BrowserWindow.avoidsMetal("Linux", null));
-		assertFalse(BrowserWindow.avoidsMetal("Windows 11", null));
-		assertFalse(BrowserWindow.avoidsMetal(null, null));
 	}
 }

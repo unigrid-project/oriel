@@ -49,18 +49,6 @@ public class BrowserWindow {
 
 	private static final Logger LOG = LoggerFactory.getLogger(BrowserWindow.class);
 	private static final Duration SHUTDOWN_GRACE = Duration.ofSeconds(10);
-	private static final String METAL = "sun.java2d.metal";
-
-	/* On macOS the JDK's Metal pipeline reads freed memory when it lets go of a display that went away, which
-	   crashes the application once a monitor sleeps or is unplugged. The page is drawn by the browser engine, so
-	   drawing the frame through OpenGL instead costs nothing noticeable. Java picks its pipeline when its graphics
-	   start, so this is settled as soon as the class is loaded, before any window exists; an application that
-	   sets sun.java2d.metal itself keeps its own choice. */
-	static {
-		if (avoidsMetal(System.getProperty("os.name"), System.getProperty(METAL))) {
-			System.setProperty(METAL, Boolean.FALSE.toString());
-		}
-	}
 
 	private final Application application;
 	private final JFrame frame;
@@ -93,11 +81,6 @@ public class BrowserWindow {
 		}
 
 		fitShapeToFrame();
-	}
-
-	/* Only a Mac has the Metal pipeline, and only an application that left the choice open has it decided. */
-	static boolean avoidsMetal(final String system, final String chosen) {
-		return system != null && system.startsWith("Mac") && chosen == null;
 	}
 
 	private void fitShapeToFrame() {
