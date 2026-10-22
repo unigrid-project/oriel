@@ -49,16 +49,34 @@ public class BrowserWindow {
 
 	private static final Logger LOG = LoggerFactory.getLogger(BrowserWindow.class);
 	private static final Duration SHUTDOWN_GRACE = Duration.ofSeconds(10);
+	private static final String METAL = "sun.java2d.metal";
+
+	/* On macOS the JDK's Metal pipeline reads freed memory when it lets go of a display that went away, which
+	   crashes the application once a monitor sleeps or is unplugged. The page is drawn by the browser engine, so
+	   drawing the frame through OpenGL instead costs nothing noticeable. Java picks its pipeline when its graphics
+	   start, so this is settled as soon as the class is loaded, before any window exists; an application that
+	   sets sun.java2d.metal itself keeps its own choice. */
+	static {
+		if (avoidsMetal(System.getProperty("os.name"), System.getProperty(METAL))) {
+			System.setProperty(METAL, Boolean.FALSE.toString());
+		}
+	}
 
 	private final Application application;
 	private final JFrame frame;
 	private final FrameControl control;
 	private final WindowSystem windowSystem;
 
+	/** A window on {@link WindowSystem#DEFAULT}, which embeds the page in the window on every desktop. */
+	public BrowserWindow(final Application application) {
+		this(application, WindowSystem.DEFAULT);
+	}
+
+	/** A window on the window system the application chose, such as the one {@code LaunchOptions} read. */
 	public BrowserWindow(final Application application, final WindowSystem windowSystem) {
 		this.application = Objects.requireNonNull(application, "A window needs the application it belongs to");
 		this.windowSystem = Objects.requireNonNull(windowSystem,
-			"A window needs a window system; WindowSystem.DEFAULT when the application has no choice"
+			"A window needs a window system; leave it out for WindowSystem.DEFAULT"
 		);
 		this.frame = new JFrame(application.name());
 		this.control = new FrameControl(frame, application.minimumSize());
@@ -75,6 +93,11 @@ public class BrowserWindow {
 		}
 
 		fitShapeToFrame();
+	}
+
+	/* Only a Mac has the Metal pipeline, and only an application that left the choice open has it decided. */
+	static boolean avoidsMetal(final String system, final String chosen) {
+		return system != null && system.startsWith("Mac") && chosen == null;
 	}
 
 	private void fitShapeToFrame() {
