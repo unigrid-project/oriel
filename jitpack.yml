@@ -1,0 +1,8 @@
+# JitPack builds the version an application asks for straight from its tag. It starts on an older Java, so the one
+# Oriel is built with is installed first.
+before_install:
+  - sdk install java 25-tem
+  - sdk use java 25-tem
+
+install:
+  - ./mvnw -B install -DskipTests
