@@ -2,6 +2,7 @@
 <img align="right" width="300px" height="auto" src="documentation/oriel-logo.png" alt="Oriel">
 
 [![Oriel build status](https://github.com/unigrid-project/oriel/actions/workflows/maven.yml/badge.svg)](https://github.com/unigrid-project/oriel/actions/workflows/maven.yml)
+[![Test coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Funigrid-project%2Foriel%2Fbadges%2Fcoverage.json)](https://github.com/unigrid-project/oriel/actions/workflows/maven.yml)
 
 **Oriel is to Java what Electron is to JavaScript.**
 
