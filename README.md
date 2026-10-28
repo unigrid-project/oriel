@@ -44,7 +44,7 @@ Releases are made from tags, and an application fetches them through [JitPack](h
 <dependency>
 	<groupId>com.github.unigrid-project.oriel</groupId>
 	<artifactId>oriel-window</artifactId>
-	<version>v0.0.1</version>
+	<version>0.0.1</version>
 </dependency>
 ```
 

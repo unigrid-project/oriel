@@ -1,12 +1,14 @@
 name: Oriel release
 
-# Started by pushing a tag such as v0.0.1, or by hand with a version. It builds and tests that commit and
+# Started by pushing a tag such as 0.0.2, or by hand with a version. It builds and tests that commit and
 # leaves a draft release with the jars, which nobody sees until it is published from the Releases page.
 # Applications fetch a published version through JitPack, which builds it from the tag; see jitpack.yml.
+# JitPack takes the tag as the Maven version, and Maven wants one that starts with a digit, so tags carry no v.
+# 0.0.1 was first tagged v0.0.1, and keeps both tags for whoever already names that one.
 on:
   push:
     tags:
-      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "[0-9]+.[0-9]+.[0-9]+"
 
   workflow_dispatch:
     inputs:
@@ -52,7 +54,7 @@ jobs:
         REPOSITORY: ${{ github.repository }}
       run: |
         if [ "$EVENT" = "push" ]; then
-          version="${GITHUB_REF_NAME#v}"
+          version="$GITHUB_REF_NAME"
 
           # A tag can be pushed from any branch; only what master holds is ever released.
           if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/master; then
@@ -72,8 +74,8 @@ jobs:
             exit 1
           fi
 
-          if git ls-remote --exit-code --tags origin "refs/tags/v$version" > /dev/null; then
-            echo "v$version is already tagged" >&2
+          if git ls-remote --exit-code --tags origin "refs/tags/$version" > /dev/null; then
+            echo "$version is already tagged" >&2
             exit 1
           fi
         fi
@@ -144,5 +146,5 @@ jobs:
           flags="--prerelease"
         fi
 
-        gh release create "v$VERSION" dist/* --draft $flags --target "$GITHUB_SHA" \
+        gh release create "$VERSION" dist/* --draft $flags --target "$GITHUB_SHA" \
           --title "Oriel $VERSION" --generate-notes
