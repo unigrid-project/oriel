@@ -1,14 +1,18 @@
 name: Oriel release
 
-# Started by pushing a tag such as 0.0.2, or by hand with a version. It builds and tests that commit and
+# Started by pushing a tag such as v0.0.1, or by hand with a version. It builds and tests that commit and
 # leaves a draft release with the jars, which nobody sees until it is published from the Releases page.
 # Applications fetch a published version through JitPack, which builds it from the tag; see jitpack.yml.
-# JitPack takes the tag as the Maven version, and Maven wants one that starts with a digit, so tags carry no v.
-# 0.0.1 was first tagged v0.0.1, and keeps both tags for whoever already names that one.
+# JitPack takes the tag as the Maven version, which has to start with a digit, so once a release is published
+# its commit is also tagged with the plain version, such as 0.0.1, and that is the one applications name.
 on:
   push:
     tags:
-      - "[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+  release:
+    types:
+      - published
 
   workflow_dispatch:
     inputs:
@@ -23,6 +27,8 @@ on:
 
 jobs:
   check:
+
+    if: github.event_name != 'release'
 
     runs-on: ubuntu-22.04
 
@@ -54,7 +60,7 @@ jobs:
         REPOSITORY: ${{ github.repository }}
       run: |
         if [ "$EVENT" = "push" ]; then
-          version="$GITHUB_REF_NAME"
+          version="${GITHUB_REF_NAME#v}"
 
           # A tag can be pushed from any branch; only what master holds is ever released.
           if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/master; then
@@ -74,10 +80,13 @@ jobs:
             exit 1
           fi
 
-          if git ls-remote --exit-code --tags origin "refs/tags/$version" > /dev/null; then
-            echo "$version is already tagged" >&2
-            exit 1
-          fi
+          # The plain tag is the one JitPack serves, so a version that has either is already taken.
+          for tag in "v$version" "$version"; do
+            if git ls-remote --exit-code --tags origin "refs/tags/$tag" > /dev/null; then
+              echo "$tag is already tagged" >&2
+              exit 1
+            fi
+          done
         fi
 
         # The jars carry the version of the pom, so the tag has to name the same one.
@@ -146,5 +155,48 @@ jobs:
           flags="--prerelease"
         fi
 
-        gh release create "$VERSION" dist/* --draft $flags --target "$GITHUB_SHA" \
+        gh release create "v$VERSION" dist/* --draft $flags --target "$GITHUB_SHA" \
           --title "Oriel $VERSION" --generate-notes
+
+  jitpack:
+
+    # The plain tag waits until the release is published: a draft made by hand has no tag of its own before
+    # then, and JitPack would build any tag it is asked for, so an application could depend on a draft nobody
+    # has looked at yet.
+    if: github.event_name == 'release'
+
+    runs-on: ubuntu-22.04
+
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+
+    - name: Tag the release's commit with its plain version
+      env:
+        TAG: ${{ github.event.release.tag_name }}
+      run: |
+        version="${TAG#v}"
+
+        if [ "$version" = "$TAG" ] || ! echo "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+          echo "$TAG is not a release tag such as v0.0.1" >&2
+          exit 1
+        fi
+
+        commit=$(git rev-parse "$TAG^{commit}")
+
+        if existing=$(git rev-parse -q --verify "refs/tags/$version^{commit}"); then
+          if [ "$existing" = "$commit" ]; then
+            echo "$version already names $commit"
+            exit 0
+          fi
+
+          echo "$version names $existing, not $commit, the commit of $TAG" >&2
+          exit 1
+        fi
+
+        git tag "$version" "$commit"
+        git push origin "refs/tags/$version"
