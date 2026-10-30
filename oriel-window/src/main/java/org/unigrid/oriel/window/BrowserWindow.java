@@ -120,6 +120,10 @@ public class BrowserWindow {
 		builder.setProgressHandler(progress());
 		builder.getCefSettings().windowless_rendering_enabled = false;
 
+		/* Left to itself, every application shares the engine's default folder, ~/.config/cef_user_data on Linux,
+		   and with it the lock that lets one browser process at a time use the folder. */
+		builder.getCefSettings().root_cache_path = location.data().getAbsolutePath();
+
 		if (WindowSystem.CHOOSABLE) {
 			builder.addJcefArgs(windowSystem.engineSwitch());
 		}

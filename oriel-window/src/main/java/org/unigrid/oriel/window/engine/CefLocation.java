@@ -26,13 +26,19 @@ import org.unigrid.oriel.server.AppId;
  * through a property named after it, such as {@code -Dledger-book.jcef=...}; a development run has no such property
  * and keeps the engine in a folder of the application's own in the home folder, such as {@code ~/.ledger-book/jcef}.
  * Each application keeps its own, so that one moving to another version of the engine leaves the others alone.
+ * What the engine keeps while it runs, its cache and the lock that lets only one browser process use it, goes to a
+ * folder of the application's own in the home folder as well, such as {@code ~/.ledger-book/browser/cef}, even for an
+ * installed application, whose own folder is not one to write to.
  */
 public class CefLocation {
 	private static final String PROPERTY_SUFFIX = ".jcef";
 	private static final String ENGINE_FOLDER = "jcef";
+	private static final String BROWSER_FOLDER = "browser";
+	private static final String DATA_FOLDER = "cef";
 
 	private final String bundled;
 	private final Path downloaded;
+	private final Path data;
 
 	public CefLocation(final AppId id) {
 		this(Objects.requireNonNull(id, "The engine is looked for by the application it belongs to"),
@@ -43,6 +49,7 @@ public class CefLocation {
 	CefLocation(final AppId id, final String bundled, final Path home) {
 		this.bundled = bundled;
 		this.downloaded = home.resolve("." + id.value()).resolve(ENGINE_FOLDER);
+		this.data = home.resolve("." + id.value()).resolve(BROWSER_FOLDER).resolve(DATA_FOLDER);
 	}
 
 	public boolean isBundled() {
@@ -51,5 +58,10 @@ public class CefLocation {
 
 	public File directory() {
 		return isBundled() ? new File(bundled) : downloaded.toFile();
+	}
+
+	/** Where the engine keeps the application's browser data, bundled or not. */
+	public File data() {
+		return data.toFile();
 	}
 }
