@@ -81,6 +81,23 @@ public class CefLocationTest {
 	}
 
 	@Test
+	public void shouldKeepTheBrowserDataInTheHomeFolderEvenWhenTheEngineIsBundled() {
+		assertEquals(HOME.resolve(".ledger/browser/cef").toFile(), new CefLocation(ID, null, HOME).data());
+		assertEquals(HOME.resolve(".ledger/browser/cef").toFile(),
+			new CefLocation(ID, "/opt/unigrid/lib/app/jcef", HOME).data()
+		);
+	}
+
+	@Test
+	public void shouldKeepEachApplicationsBrowserDataApart() {
+		final File ledger = new CefLocation(ID, null, HOME).data();
+		final File notebook = new CefLocation(AppId.of("notebook"), null, HOME).data();
+
+		assertEquals(HOME.resolve(".notebook/browser/cef").toFile(), notebook);
+		assertNotEquals(ledger, notebook);
+	}
+
+	@Test
 	public void shouldReadTheFolderFromThePropertyNamedAfterTheApplication() {
 		final AppId id = AppId.of("oriel-location-test");
 
