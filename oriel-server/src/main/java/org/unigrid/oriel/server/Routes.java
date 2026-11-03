@@ -54,14 +54,15 @@ public final class Routes {
 		final WindowControl window, final Actions actions, final Supplier<? extends View> index) {
 
 		/* Anything the file handlers do not recognise falls through to the pages,
-		   so an unknown path renders the interface rather than a Jetty error page. */
-		return new Guard(new Handler.Sequence(
+		   so an unknown path renders the interface rather than a Jetty error page.
+		   The headers go on outside the guard, so that a refusal carries them too. */
+		return new SecurityHeaders(new Guard(new Handler.Sequence(
 			new ContextHandler(files(ASSETS), ASSET_PATH),
 			new ContextHandler(files(SCRIPTS), SCRIPT_PATH),
 			new ContextHandler(new WindowHandler(window), WINDOW_PATH),
 			new ContextHandler(new ActionHandler(actions, templates), ACTION_PATH),
 			new UiHandler(templates, index)
-		), id, token);
+		), id, token));
 	}
 
 	/* The scripts the pages run sit under a root of their own, because the classpath answers with the first

@@ -14,6 +14,10 @@
     If not, see <http://www.gnu.org/licenses/> and <https://github.com/unigrid-project/oriel>.
  */
 
+/* The server's policy runs scripts from files only, so htmx is kept from running code written into attributes
+   as well, such as hx-on or hx-vals="js:...": such an attribute is ignored rather than refused in the console. */
+htmx.config.allowEval = false;
+
 /* Chromium owns the window contents, so the only way to reach the frame around it
    is to ask the host that opened it. */
 const command = (name) => fetch("/window/" + name, { method: "POST" });
@@ -51,6 +55,16 @@ document.addEventListener("click", async (event) => {
 		}
 	} finally {
 		document.body.inert = false;
+	}
+});
+
+/* The path rides along as "path" with the request a button makes on hx-trigger="file-chosen", so the page passes
+   it on with markup alone. */
+document.addEventListener("htmx:configRequest", (event) => {
+	const trigger = event.detail.triggeringEvent;
+
+	if (trigger && trigger.type === "file-chosen") {
+		event.detail.parameters.path = trigger.detail.path;
 	}
 });
 
