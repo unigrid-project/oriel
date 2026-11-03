@@ -55,10 +55,16 @@ public class BrowserWindow {
 	private final FrameControl control;
 	private final WindowSystem windowSystem;
 
+	/** A window on {@link WindowSystem#DEFAULT}, which embeds the page in the window on every desktop. */
+	public BrowserWindow(final Application application) {
+		this(application, WindowSystem.DEFAULT);
+	}
+
+	/** A window on the window system the application chose, such as the one {@code LaunchOptions} read. */
 	public BrowserWindow(final Application application, final WindowSystem windowSystem) {
 		this.application = Objects.requireNonNull(application, "A window needs the application it belongs to");
 		this.windowSystem = Objects.requireNonNull(windowSystem,
-			"A window needs a window system; WindowSystem.DEFAULT when the application has no choice"
+			"A window needs a window system; leave it out for WindowSystem.DEFAULT"
 		);
 		this.frame = new JFrame(application.name());
 		this.control = new FrameControl(frame, application.minimumSize());

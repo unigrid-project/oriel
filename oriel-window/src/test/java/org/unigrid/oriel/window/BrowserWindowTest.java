@@ -33,6 +33,7 @@ public class BrowserWindowTest {
 	@Test
 	public void shouldRefuseToOpenForNoApplication() {
 		assertThrows(NullPointerException.class, () -> new BrowserWindow(null, WindowSystem.X11));
+		assertThrows(NullPointerException.class, () -> new BrowserWindow(null));
 	}
 
 	@Test
