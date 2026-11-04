@@ -37,6 +37,10 @@ import me.friwi.jcefmaven.MavenCefAppHandlerAdapter;
 import org.cef.CefApp;
 import org.cef.CefClient;
 import org.cef.browser.CefBrowser;
+import org.cef.browser.CefFrame;
+import org.cef.handler.CefLifeSpanHandlerAdapter;
+import org.cef.handler.CefRequestHandlerAdapter;
+import org.cef.network.CefRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.unigrid.oriel.server.window.WindowControl;
@@ -145,6 +149,9 @@ public class BrowserWindow {
 		});
 
 		final CefClient client = builder.build().createClient();
+
+		keepOnTheApplication(client, uri);
+
 		final CefBrowser browser = client.createBrowser(uri.toString(), false, false);
 
 		frame.addWindowListener(shutDownOnClose(browser));
@@ -165,6 +172,92 @@ public class BrowserWindow {
 			frame.setVisible(true);
 			browser.getUIComponent().repaint();
 		});
+	}
+
+	/**
+	 * Keeps the window on the application. A page can lead off it in three ways: by going to another address, by
+	 * opening a window, and by a link opened as a new tab, such as with a middle click. None of them takes the
+	 * window or opens one of Chromium's own outside the frame: an address of the application loads in the window,
+	 * and one for the desktop is offered to it. Only the main frame offers anything, since a frame inside the page
+	 * is no one's choice.
+	 *
+	 * @param client the browser engine's client, before its browser is created
+	 * @param home the address the window opens on
+	 */
+	private void keepOnTheApplication(final CefClient client, final URI home) {
+		final OutsideAddresses outside = new OutsideAddresses(frame, application.name());
+
+		client.addRequestHandler(new CefRequestHandlerAdapter() {
+			@Override
+			public boolean onBeforeBrowse(final CefBrowser browser, final CefFrame target,
+				final CefRequest request, final boolean userGesture, final boolean redirect) {
+
+				return !follows(home, request.getURL(), target.isMain() ? outside : null);
+			}
+
+			@Override
+			public boolean onOpenURLFromTab(final CefBrowser browser, final CefFrame target,
+				final String address, final boolean userGesture) {
+
+				return inThisWindow(browser, home, address, outside);
+			}
+		});
+
+		client.addLifeSpanHandler(new CefLifeSpanHandlerAdapter() {
+			@Override
+			public boolean onBeforePopup(final CefBrowser browser, final CefFrame target, final String address,
+				final String name) {
+
+				return inThisWindow(browser, home, address, outside);
+			}
+		});
+	}
+
+	/**
+	 * Handles what a page asks to open as a new window or tab: the application's own address loads in this window
+	 * instead, one for the desktop is offered to it, and no window or tab of Chromium's own ever opens.
+	 *
+	 * @param browser the browser the page runs in
+	 * @param home the address the window opened on
+	 * @param address the address the page asks to open
+	 * @param outside where an address for the desktop is offered
+	 * @return always true, which tells the browser engine not to open a window or tab of its own
+	 */
+	private static boolean inThisWindow(final CefBrowser browser, final URI home, final String address,
+		final OutsideAddresses outside) {
+
+		if (follows(home, address, outside)) {
+			browser.loadURL(address);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Tells whether the window may go to an address. An address for the desktop is offered to it instead when there
+	 * is someone to offer it to, and an address that belongs nowhere is logged.
+	 *
+	 * @param home the address the window opened on
+	 * @param address the address the page leads to
+	 * @param outside where an address for the desktop is offered, or null when it is not offered at all, as for a
+	 *        frame inside the page
+	 * @return true if the window may go to the address
+	 */
+	private static boolean follows(final URI home, final String address, final OutsideAddresses outside) {
+		return switch (Destination.of(home, address)) {
+			case WINDOW -> true;
+			case DESKTOP -> {
+				if (outside != null) {
+					outside.offer(URI.create(address));
+				}
+
+				yield false;
+			}
+			case NOWHERE -> {
+				LOG.info("The window does not go to {}", address);
+				yield false;
+			}
+		};
 	}
 
 	/* Getting the engine ready can take a while the first time it is downloaded, so each stage is logged, once. */
